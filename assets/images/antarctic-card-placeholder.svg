@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Antarctic placeholder artwork</title>
+  <desc id="desc">Penguins on Antarctic ice with open sky and no mountains.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#8fc8ef"/>
+      <stop offset="58%" stop-color="#d6efff"/>
+      <stop offset="100%" stop-color="#f4fbff"/>
+    </linearGradient>
+    <linearGradient id="ice" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f8fdff"/>
+      <stop offset="100%" stop-color="#bbd8e9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <ellipse cx="1150" cy="160" rx="120" ry="46" fill="#ffffff" opacity=".48"/>
+  <ellipse cx="420" cy="130" rx="170" ry="58" fill="#ffffff" opacity=".42"/>
+  <path d="M0 620C240 580 320 640 580 610s410-40 620 10 260 40 400 20V1000H0z" fill="#d5ecf6"/>
+  <path d="M0 700C220 660 360 760 580 720s420-60 680 20 230 60 340 40V1000H0z" fill="#c2dceb"/>
+  <path d="M0 790C230 750 370 850 620 815s420-30 680 55 220 50 300 40V1000H0z" fill="url(#ice)"/>
+  <g transform="translate(390 620)">
+    <ellipse cx="0" cy="120" rx="42" ry="12" fill="#8daec0" opacity=".35"/>
+    <ellipse cx="150" cy="112" rx="32" ry="10" fill="#8daec0" opacity=".3"/>
+    <ellipse cx="270" cy="128" rx="52" ry="14" fill="#8daec0" opacity=".32"/>
+    <g>
+      <path d="M0 0c42 0 62 36 62 82 0 47-22 92-62 92S-62 129-62 82C-62 36-42 0 0 0z" fill="#0d1722"/>
+      <path d="M0 18c24 0 36 20 36 50s-13 65-36 65-36-33-36-65 12-50 36-50z" fill="#f7fafb"/>
+      <circle cx="-12" cy="28" r="3" fill="#0d1722"/>
+      <path d="M-3 42 18 48-3 56z" fill="#f1a33f"/>
+    </g>
+    <g transform="translate(150 22) scale(.82)">
+      <path d="M0 0c42 0 62 36 62 82 0 47-22 92-62 92S-62 129-62 82C-62 36-42 0 0 0z" fill="#0d1722"/>
+      <path d="M0 18c24 0 36 20 36 50s-13 65-36 65-36-33-36-65 12-50 36-50z" fill="#f7fafb"/>
+      <circle cx="-12" cy="28" r="3" fill="#0d1722"/>
+      <path d="M-3 42 18 48-3 56z" fill="#f1a33f"/>
+    </g>
+    <g transform="translate(272 8) scale(1.05)">
+      <path d="M0 0c42 0 62 36 62 82 0 47-22 92-62 92S-62 129-62 82C-62 36-42 0 0 0z" fill="#0d1722"/>
+      <path d="M0 18c24 0 36 20 36 50s-13 65-36 65-36-33-36-65 12-50 36-50z" fill="#f7fafb"/>
+      <circle cx="-12" cy="28" r="3" fill="#0d1722"/>
+      <path d="M-3 42 18 48-3 56z" fill="#f1a33f"/>
+    </g>
+  </g>
+</svg>

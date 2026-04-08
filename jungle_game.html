@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canopy Descent - The Expedition Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --void:#060910;
+  --deep:#0b1020;
+  --surface:rgba(10,15,30,0.94);
+  --surface2:rgba(16,24,46,0.88);
+  --glass:rgba(255,255,255,0.032);
+  --border:rgba(255,255,255,0.07);
+  --border-hi:rgba(255,255,255,0.14);
+  --text:#edf0f8;
+  --muted:#6070a0;
+  --accent:#4db87a;
+  --accent-hi:#6dcf93;
+  --blue:#4a9ece;
+  --blue-hi:#65b8f0;
+  --danger:#dc4f4f;
+  --success:#3dba7a;
+  --warning:#d4873a;
+  --safety:#dc4f4f;
+  --time:#3da068;
+  --focus:#82d4a0;
+  --r:12px;
+  --r-lg:20px;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--void);
+  color:var(--text);
+  font-family:'Inter',system-ui,sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+  font-size:15px;
+  line-height:1.65;
+}
+
+/* ===== SCREENS ===== */
+.screen{display:none}
+.screen.active{display:block;animation:screenIn 0.55s cubic-bezier(0.16,1,0.3,1) both}
+#screen-landing.active{display:flex !important;animation:landingIn 1s ease both}
+
+@keyframes screenIn{
+  from{opacity:0;transform:translateY(18px) scale(0.99)}
+  to{opacity:1;transform:none}
+}
+@keyframes landingIn{from{opacity:0}to{opacity:1}}
+
+/* ===== LAYOUT ===== */
+#universe-canvas{
+  position:fixed;top:0;left:0;
+  width:100%;height:100%;
+  z-index:1;
+  pointer-events:none;
+}
+
+#screen-landing{
+  position:fixed;inset:0;
+  z-index:40;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:var(--void);
+}
+
+.shell{
+  position:relative;
+  z-index:20;
+  background:var(--void);
+  width:100%;
+  max-width:860px;
+  margin:0 auto;
+  padding:0 18px 80px;
+  min-height:100vh;
+}
+
+/* ===== LANDING HERO ===== */
+.hero-bg{
+  position:absolute;inset:0;
+  background-image:url('https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=1920&q=80');
+  background-size:cover;
+  background-position:center 38%;
+  opacity:0.13;
+  z-index:0;
+}
+.hero-bg::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,
+    rgba(6,9,16,0.2) 0%,
+    rgba(6,9,16,0.05) 35%,
+    rgba(6,9,16,0.5) 75%,
+    rgba(6,9,16,1) 100%);
+}
+
+.hero-content{
+  position:relative;z-index:4;
+  text-align:center;
+  max-width:680px;
+  padding:0 28px;
+}
+
+.hero-eyebrow{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.68rem;font-weight:500;
+  letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:24px;
+  opacity:0.85;
+}
+
+.hero-title{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(4rem,11vw,9rem);
+  font-weight:700;
+  line-height:0.9;
+  letter-spacing:-0.025em;
+  color:var(--text);
+  margin-bottom:10px;
+}
+.hero-title .gold{color:var(--accent)}
+
+.hero-rule{
+  width:36px;height:2px;
+  background:var(--accent);
+  margin:22px auto;
+  border-radius:1px;
+}
+
+.hero-sub{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.72rem;
+  letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:36px;
+}
+
+.hero-desc{
+  font-size:1.02rem;
+  line-height:1.88;
+  color:rgba(237,240,248,0.68);
+  max-width:500px;
+  margin:0 auto 30px;
+}
+
+.hero-meta{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.72rem;
+  letter-spacing:0.12em;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:38px;
+}
+.hero-meta span{margin:0 12px}
+
+.btn-hero{
+  display:inline-block;
+  background:var(--accent);
+  color:#07090f;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;
+  font-size:0.8rem;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  padding:15px 44px;
+  border:none;
+  border-radius:2px;
+  cursor:pointer;
+  transition:all 0.35s cubic-bezier(0.16,1,0.3,1);
+  position:relative;overflow:hidden;
+}
+.btn-hero::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,255,255,0.12);
+  opacity:0;transition:opacity 0.2s;
+}
+.btn-hero:hover::after{opacity:1}
+.btn-hero:hover{transform:translateY(-3px);box-shadow:0 14px 44px rgba(77,184,122,0.28)}
+
+/* ===== EXPEDITION SERIES BAR ===== */
+.hero-footer{
+  position:absolute;bottom:0;left:0;right:0;
+  z-index:2;
+  padding:32px 28px 28px;
+  background:linear-gradient(to top,rgba(6,9,16,1) 0%,rgba(6,9,16,0.85) 55%,transparent 100%);
+}
+.series-label{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:14px;text-align:center;
+}
+.series-chips{
+  display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+}
+.chip{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.68rem;font-weight:500;
+  letter-spacing:0.07em;
+  padding:6px 15px;
+  background:transparent;
+  border-radius:2px;
+  border:1px solid var(--border);
+  color:var(--muted);
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.chip.on{
+  border-color:rgba(77,184,122,0.45);
+  color:var(--accent);
+  background:rgba(77,184,122,0.07);
+}
+.chip.off{opacity:0.3}
+
+/* ===== TYPOGRAPHY ===== */
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
+
+/* ===== CARDS ===== */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:32px 36px;
+  margin-bottom:20px;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.card h1{font-size:1.75rem;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:-0.015em}
+.card h2{font-size:1.3rem;font-weight:600;margin-bottom:14px;letter-spacing:-0.01em}
+.card h3{font-size:0.96rem;font-weight:600;color:var(--accent);margin-bottom:12px;letter-spacing:0.01em}
+.card p{color:rgba(237,240,248,0.74);margin-bottom:14px;line-height:1.82}
+.card p:last-child{margin-bottom:0}
+
+/* ===== PHOTO CARD ===== */
+.card.photo-card{padding:0;overflow:hidden}
+.card-photo{
+  width:100%;height:220px;
+  object-fit:cover;
+  display:block;
+  opacity:0.65;
+  transition:opacity 0.3s;
+}
+.card-photo:hover{opacity:0.72}
+.photo-body{padding:28px 36px 32px}
+
+/* ===== GAME HEADER ===== */
+.game-header{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  gap:14px;flex-wrap:wrap;
+  padding:16px 24px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  margin-bottom:18px;
+  backdrop-filter:blur(14px);
+}
+.logo{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:1.02rem;font-weight:700;
+  color:var(--accent);letter-spacing:0.04em;
+}
+.subtitle{font-size:0.72rem;color:var(--muted);margin-top:2px;letter-spacing:0.03em}
+.hdr-right{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.78rem;color:var(--muted);text-align:right;
+}
+
+/* ===== RESOURCES ===== */
+.resources{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:12px;margin-bottom:18px;
+}
+.res-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px 18px;
+  backdrop-filter:blur(8px);
+}
+.res-label{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.68rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.1em;
+  margin-bottom:8px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.res-label span{
+  font-weight:700;font-size:1.32rem;
+  color:var(--text);letter-spacing:-0.015em;
+}
+.res-track{
+  height:3px;background:rgba(255,255,255,0.06);
+  border-radius:2px;overflow:hidden;
+}
+.res-fill{
+  height:100%;border-radius:2px;
+  transition:width 0.65s cubic-bezier(0.4,0,0.2,1);
+}
+.res-fill.safety{background:var(--safety)}
+.res-fill.time{background:var(--time)}
+.res-fill.focus{background:var(--focus)}
+
+/* ===== RESOURCE DANGER ===== */
+@keyframes dangerBlink{
+  0%,100%{color:var(--danger);text-shadow:0 0 12px rgba(220,79,79,0.6)}
+  50%{color:#ff8888;text-shadow:0 0 22px rgba(220,79,79,0.9)}
+}
+.res-danger{border-color:rgba(220,79,79,0.35) !important}
+.res-danger .res-label span{animation:dangerBlink 0.9s ease-in-out infinite}
+
+/* ===== CALLER BANNER ===== */
+.caller-banner{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 18px;margin-bottom:18px;
+  background:rgba(77,184,122,0.07);
+  border:1px solid rgba(77,184,122,0.22);
+  border-radius:var(--r);
+}
+.caller-label{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.68rem;text-transform:uppercase;
+  letter-spacing:0.1em;color:var(--muted);
+  flex-shrink:0;
+}
+.caller-name{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.94rem;font-weight:700;
+  color:var(--accent);
+}
+
+/* ===== SCENARIO ===== */
+.scenario-body{
+  font-size:1rem;line-height:1.92;
+  color:rgba(237,240,248,0.8);
+  margin-bottom:26px;
+  padding:24px 28px;
+  background:rgba(255,255,255,0.022);
+  border-left:2px solid var(--accent);
+  border-radius:0 var(--r) var(--r) 0;
+  white-space:pre-line;
+}
+
+/* ===== TAGS ===== */
+.tag{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.66rem;padding:4px 12px;
+  border-radius:2px;font-weight:600;
+  letter-spacing:0.09em;text-transform:uppercase;
+}
+.tag-day{background:rgba(74,158,206,0.1);color:var(--blue);border:1px solid rgba(74,158,206,0.2)}
+.tag-crisis{background:rgba(220,79,79,0.1);color:var(--danger);border:1px solid rgba(220,79,79,0.22)}
+.tag-summit{background:rgba(77,184,122,0.1);color:var(--accent);border:1px solid rgba(77,184,122,0.22)}
+.tag-normal{background:rgba(255,255,255,0.045);color:var(--muted);border:1px solid var(--border)}
+
+/* ===== TIMER ===== */
+.timer-wrap{
+  display:flex;align-items:center;gap:16px;
+  margin-bottom:24px;padding:16px 20px;
+  background:rgba(220,79,79,0.055);
+  border:1px solid rgba(220,79,79,0.18);
+  border-radius:var(--r);
+}
+.timer-svg{position:relative;width:52px;height:52px;flex-shrink:0}
+.timer-svg svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:rgba(255,255,255,0.07);stroke-width:4}
+.ring-fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 0.9s linear,stroke 0.5s}
+.ring-num{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;font-size:1.06rem;
+}
+.timer-label{font-size:0.8rem;color:var(--muted)}
+.timer-label strong{
+  display:block;color:var(--text);margin-bottom:2px;
+  font-family:'Space Grotesk',sans-serif;font-weight:600;
+}
+
+/* ===== OPTIONS ===== */
+.options{display:grid;gap:10px;margin-bottom:26px}
+.option-btn{
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:17px 22px;
+  cursor:pointer;text-align:left;
+  color:var(--text);
+  transition:all 0.22s cubic-bezier(0.4,0,0.2,1);
+  font-size:0.91rem;line-height:1.66;
+  width:100%;font-family:'Inter',sans-serif;
+}
+.option-btn:hover:not(:disabled){
+  border-color:rgba(77,184,122,0.38);
+  background:rgba(77,184,122,0.04);
+  transform:translateX(4px);
+}
+.option-btn.selected{
+  border-color:var(--accent);
+  background:rgba(77,184,122,0.055);
+}
+.option-btn:disabled{opacity:0.42;cursor:default;transform:none}
+.option-letter{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:21px;height:21px;border-radius:50%;
+  background:var(--accent);color:#07090f;
+  font-size:0.65rem;font-weight:800;
+  margin-right:12px;
+  font-family:'Space Grotesk',sans-serif;
+  flex-shrink:0;vertical-align:middle;
+}
+
+/* ===== OUTCOME ===== */
+.outcome-banner{
+  border-radius:var(--r);
+  padding:20px 24px;margin-bottom:20px;
+  font-size:0.91rem;line-height:1.78;
+}
+.outcome-banner.good{background:rgba(61,186,122,0.07);border:1px solid rgba(61,186,122,0.2)}
+.outcome-banner.ok{background:rgba(212,135,58,0.07);border:1px solid rgba(212,135,58,0.2)}
+.outcome-banner.bad{background:rgba(220,79,79,0.07);border:1px solid rgba(220,79,79,0.2)}
+.outcome-banner .pts{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;margin-top:10px;
+  font-size:0.8rem;color:var(--muted);
+}
+
+/* ===== BUTTONS ===== */
+.btn{
+  font-family:'Space Grotesk',sans-serif;
+  padding:12px 26px;border:none;
+  border-radius:var(--r);
+  font-size:0.82rem;font-weight:600;
+  cursor:pointer;
+  transition:all 0.24s cubic-bezier(0.4,0,0.2,1);
+  letter-spacing:0.05em;text-transform:uppercase;
+}
+.btn-primary{background:var(--accent);color:#08090f}
+.btn-primary:hover{background:var(--accent-hi);transform:translateY(-2px);box-shadow:0 10px 32px rgba(77,184,122,0.22)}
+.btn-secondary{background:var(--glass);color:var(--text);border:1px solid var(--border-hi)}
+.btn-secondary:hover{background:rgba(255,255,255,0.065)}
+.btn-danger{background:var(--danger);color:white}
+.btn:disabled{opacity:0.32;cursor:default;transform:none !important;box-shadow:none !important}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+
+/* ===== SCOREBOARD ===== */
+.scoreboard{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:20px 24px;margin-bottom:18px;
+}
+.scoreboard h3{
+  color:var(--muted);font-size:0.65rem;
+  text-transform:uppercase;letter-spacing:0.15em;
+  margin-bottom:14px;
+}
+.score-row{
+  display:flex;justify-content:space-between;
+  align-items:center;padding:8px 0;
+  border-bottom:1px solid var(--border);font-size:0.87rem;
+}
+.score-row:last-child{border-bottom:none}
+.score-row.active-team{color:var(--accent);font-weight:700}
+
+/* ===== DECISION LOG ===== */
+.decision-log{margin:18px 0}
+.log-item{
+  display:flex;gap:16px;padding:10px 0;
+  border-bottom:1px solid var(--border);font-size:0.81rem;
+}
+.log-day{color:var(--accent);font-weight:700;min-width:52px;font-family:'Space Grotesk',sans-serif}
+.log-text{color:rgba(237,240,248,0.6);flex:1}
+.log-impact{font-weight:600;min-width:52px;text-align:right;font-family:'Space Grotesk',sans-serif}
+.log-impact.good{color:var(--success)}.log-impact.bad{color:var(--danger)}.log-impact.ok{color:var(--warning)}
+
+/* ===== DEBRIEF ===== */
+.debrief-photo-wrap{
+  width:100%;height:260px;
+  position:relative;overflow:hidden;
+  border-radius:var(--r-lg) var(--r-lg) 0 0;
+  margin-bottom:0;
+}
+.debrief-photo{
+  width:100%;height:100%;
+  object-fit:cover;object-position:center 40%;
+  opacity:0.55;
+  display:block;
+}
+.debrief-photo-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(6,9,16,0.3) 0%,rgba(6,9,16,0.85) 100%);
+}
+
+.debrief-header{
+  text-align:center;
+  padding:52px 20px 40px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-top:none;
+  border-radius:0 0 var(--r-lg) var(--r-lg);
+  margin-bottom:20px;
+  backdrop-filter:blur(14px);
+}
+.result-icon{display:none}
+.debrief-rule{width:32px;height:2px;background:var(--accent);margin:0 auto 20px;border-radius:1px}
+.debrief-header h1{
+  font-size:clamp(1.6rem,4vw,2.4rem);
+  font-weight:700;margin-bottom:10px;
+  letter-spacing:-0.02em;
+}
+.debrief-header p{color:var(--muted);font-size:0.95rem}
+
+.final-scores{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:12px;margin:0 0 20px;
+}
+.final-score-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:26px 20px;text-align:center;
+  backdrop-filter:blur(14px);
+}
+.final-score-card .label{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.65rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.13em;margin-bottom:12px;
+}
+.final-score-card .val{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:2.6rem;font-weight:700;letter-spacing:-0.025em;
+}
+.val.safety{color:var(--safety)}.val.time{color:var(--time)}.val.focus{color:var(--focus)}
+.score-denom{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.68rem;color:var(--muted);margin-top:6px;
+}
+
+/* ===== NARRATIVE INTRO ===== */
+.narrative-intro{
+  font-size:1rem;line-height:1.9;
+  color:rgba(237,240,248,0.76);
+  padding:24px 0;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  margin:20px 0;
+}
+
+/* ===== ARCHETYPE ===== */
+.archetype-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(198px,1fr));
+  gap:10px;margin:20px 0;
+}
+.arch-card{
+  background:var(--glass);border:1px solid var(--border);
+  border-radius:var(--r);padding:18px 16px;
+  cursor:pointer;
+  transition:all 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+.arch-card:hover{border-color:rgba(77,184,122,0.38);transform:translateY(-2px);background:rgba(77,184,122,0.04)}
+.arch-card.selected{border-color:var(--accent);background:rgba(77,184,122,0.07)}
+.arch-card.taken{opacity:0.28;pointer-events:none}
+.arch-name{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;color:var(--accent);
+  margin-bottom:6px;font-size:0.9rem;
+}
+.arch-tagline{font-size:0.74rem;color:var(--muted);line-height:1.55}
+
+/* ===== TEAM BADGE ===== */
+.team-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--glass);border:1px solid var(--border);
+  border-radius:3px;padding:5px 12px;
+  font-size:0.77rem;margin:3px;
+}
+.team-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+
+/* ===== CASCADE NOTE ===== */
+.cascade-note{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.78rem;color:var(--warning);
+  padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px;
+}
+
+/* ===== FORM ===== */
+input[type=text],input[type=number]{
+  background:rgba(255,255,255,0.038);
+  border:1px solid var(--border-hi);
+  border-radius:8px;padding:11px 16px;
+  color:var(--text);font-size:0.91rem;
+  width:100%;outline:none;
+  transition:border-color 0.2s;
+  font-family:'Inter',sans-serif;
+}
+input[type=text]:focus,input[type=number]:focus{border-color:var(--accent)}
+label{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.72rem;color:var(--muted);
+  display:block;margin-bottom:6px;margin-top:16px;
+  text-transform:uppercase;letter-spacing:0.09em;
+}
+
+/* ===== HELPERS ===== */
+.setup-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.highlight{color:var(--accent);font-weight:600}
+.muted{color:var(--muted)}
+.text-center{text-align:center}
+.mt-16{margin-top:16px}.mt-24{margin-top:24px}
+
+/* ===== DEBRIEF SUMMIT ANIMATION ===== */
+@keyframes summitPulse{
+  0%{text-shadow:0 0 0 rgba(77,184,122,0)}
+  50%{text-shadow:0 0 60px rgba(77,184,122,0.3),0 0 120px rgba(77,184,122,0.12)}
+  100%{text-shadow:0 0 0 rgba(77,184,122,0)}
+}
+.summit-win h1{
+  color:var(--accent);
+  animation:summitPulse 2.5s ease-in-out 0.4s infinite;
+}
+
+/* ===== CONFETTI ===== */
+.confetti-dot{
+  position:fixed;pointer-events:none;z-index:100;
+  width:6px;height:6px;border-radius:50%;
+  animation:confettiFall linear forwards;
+}
+@keyframes confettiFall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+  100%{transform:translateY(105vh) rotate(720deg);opacity:0}
+}
+
+/* ===== MEDIA ===== */
+@media(max-width:600px){
+  .card{padding:22px 18px}
+  .photo-body{padding:22px 18px 28px}
+  .final-scores{grid-template-columns:1fr}
+  .setup-row{grid-template-columns:1fr}
+  .hero-title{font-size:clamp(3.2rem,16vw,5rem)}
+  .resources{grid-template-columns:1fr;gap:8px}
+}
+.fixed-nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:none;gap:8px;z-index:200;align-items:center}
+.fn-btn{font-family:'Space Grotesk',sans-serif;font-size:0.62rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:7px 18px;border-radius:3px;border:1px solid rgba(255,255,255,0.1);background:rgba(6,9,16,0.82);color:rgba(237,240,248,0.5);cursor:pointer;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transition:all 0.2s;white-space:nowrap;}
+.fn-btn:hover{color:var(--accent);border-color:rgba(77,184,122,0.3);background:rgba(6,9,16,0.92)}
+.fn-stop{border-color:rgba(220,79,79,0.15)}
+.fn-stop:hover{color:var(--danger) !important;border-color:rgba(220,79,79,0.38) !important}
+</style>
+<link rel="stylesheet" href="assets/footer.css">
+</head>
+<body>
+
+<!-- PARTICLE UNIVERSE CANVAS -->
+<canvas id="universe-canvas"></canvas>
+
+<div class="fixed-nav" id="fixed-nav">
+  <button class="fn-btn" id="fn-home" onclick="window.location.href='index.html'">&#8592; Home</button>
+  <button class="fn-btn fn-stop" id="fn-stop" style="display:none" onclick="confirmStopExpedition()">Stop Expedition</button>
+</div>
+
+<!-- ======================== LANDING ======================== -->
+<div id="screen-landing" class="screen active">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">The Expedition Game</div>
+    <h1 class="hero-title">CANOPY<br><span class="gold">DESCENT</span></h1>
+    <div class="hero-rule"></div>
+    <div class="hero-sub">Amazon Basin &nbsp;&middot;&nbsp; Javari Valley &nbsp;&middot;&nbsp; Brazil</div>
+    <p class="hero-desc">Six hundred kilometres of primary rainforest. No roads. No signal. No evacuation window faster than 72 hours. The Amazon's Javari Valley is one of the most biodiverse and most dangerous places on Earth. In 2022, Bruno Pereira and Dom Phillips never came back. This expedition demands everything you know about decision-making under extreme uncertainty.</p>
+    <button class="btn-hero" onclick="goTo('screen-setup')">Begin Expedition</button>
+  </div>
+</div>
+
+<!-- SHELL: all remaining screens -->
+<div class="shell">
+
+<!-- ======================== SETUP ======================== -->
+<div id="screen-setup" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="card">
+    <h2>Team Setup</h2>
+    <p class="muted">Enter how many players are joining, then name each player. Each will choose their archetype in turn.</p>
+    <div class="setup-row">
+      <div><label for="team-name-input">Team Name</label><input type="text" id="team-name-input" placeholder="e.g. Team Javari" maxlength="30"></div>
+      <div><label for="player-count-input">Players (1&ndash;9)</label><input type="number" id="player-count-input" min="1" max="9" value="6" oninput="renderPlayerFields()"></div>
+    </div>
+    <div id="player-name-fields" class="mt-16"></div>
+    <div class="btn-row mt-24">
+      <button class="btn btn-secondary" onclick="goTo('screen-landing')">Back</button>
+      <button class="btn btn-primary" onclick="startAssessments()">Archetype Assessment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== ARCHETYPE ======================== -->
+<div id="screen-archetype" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="card">
+    <h2 id="arch-heading">Player 1 - choose your archetype</h2>
+    <p class="muted" style="margin-bottom:4px">Read the scenario, then pick the response that feels most natural to you under pressure.</p>
+    <div class="narrative-intro" id="arch-scenario"></div>
+    <div class="archetype-grid" id="arch-grid"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="arch-confirm" onclick="confirmArch()" disabled>Confirm</button></div>
+  </div>
+</div>
+
+<!-- ======================== INTRO ======================== -->
+<div id="screen-intro" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="card photo-card">
+    <img class="card-photo"
+      src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1400&q=75"
+      alt="Amazon rainforest canopy"
+      onerror="this.style.display='none'">
+    <div class="photo-body">
+      <h1>Operation Javari</h1>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:22px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.12em;text-transform:uppercase">March 2024 &nbsp;&middot;&nbsp; Javari Valley, Western Amazon &nbsp;&middot;&nbsp; Brazil</div>
+      <div class="narrative-intro">
+        <p>The year is 2024. Your international research team has arrived at the edge of the Javari Valley Indigenous Territory - a 8.5 million hectare protected area in the western Amazon that contains more uncontacted indigenous groups than anywhere else on Earth. Your mission: 60 days of biodiversity survey and ecosystem mapping in primary rainforest that has never been formally documented.</p>
+        <p style="margin-top:16px">You are travelling with <span class="highlight">Marcos</span>, a 48-year-old FUNAI indigenous affairs specialist from Atalaia do Norte. His colleagues Bruno Pereira and Dom Phillips were murdered in this valley in 2022. Marcos knows the risks. He came anyway because the science matters. He also knows the forest in ways no training programme teaches.</p>
+        <p style="margin-top:16px">The Amazon in March is deep wet season. Rivers rise 6 to 8 metres in days. The forest floor floods without warning. Malaria, dengue fever, leptospirosis, and parasitic infections are not hypothetical - they are statistical certainties over 60 days. Evacuation is 72 hours minimum by river and air. You brought medicines but the jungle decides what problems you face.</p>
+        <p style="margin-top:16px;font-size:0.86rem;color:var(--muted)">14 scenarios across 60 days. Some carry timers. Earlier choices cascade into later medical crises. Only teams with disciplined protocols and strong cohesion will complete the research objectives and leave the Javari Valley.</p>
+      </div>
+      <div id="team-summary" class="mt-16"></div>
+      <div class="btn-row mt-24">
+        <button class="btn btn-primary" onclick="startGame()">Begin Expedition</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== GAME ======================== -->
+<div id="screen-game" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="game-header">
+    <div>
+      <div class="logo" id="hdr-name">Team Javari</div>
+      <div class="subtitle">Operation Javari &nbsp;&middot;&nbsp; Western Amazon, Brazil</div>
+    </div>
+    <div class="hdr-right">Day <span id="hdr-day">1</span> of 60 &nbsp;&middot;&nbsp; Scenario <span id="hdr-sc">1</span> of 14</div>
+  </div>
+  <div class="resources">
+    <div class="res-card" id="res-card-safety">
+      <div class="res-label">Safety <span id="rv-safety">20</span></div>
+      <div class="res-track"><div class="res-fill safety" id="rb-safety" style="width:100%"></div></div>
+    </div>
+    <div class="res-card" id="res-card-time">
+      <div class="res-label">Health <span id="rv-time">15</span></div>
+      <div class="res-track"><div class="res-fill time" id="rb-time" style="width:100%"></div></div>
+    </div>
+    <div class="res-card" id="res-card-focus">
+      <div class="res-label">Cohesion <span id="rv-focus">15</span></div>
+      <div class="res-track"><div class="res-fill focus" id="rb-focus" style="width:100%"></div></div>
+    </div>
+  </div>
+  <div id="scoreboard" class="scoreboard" style="display:none">
+    <h3>Previous Top Scorers</h3>
+    <div id="score-rows"></div>
+  </div>
+  <div id="caller-banner" class="caller-banner" style="display:none">
+    <span class="caller-label">This round's caller</span>
+    <span class="caller-name" id="caller-name-display"></span>
+    <span style="font-size:0.78rem;color:var(--muted);margin-left:auto">Read the scenario aloud and name the decision.</span>
+  </div>
+  <div class="card">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
+      <span class="tag tag-day" id="sc-day-tag">Day 1</span>
+      <span class="tag" id="sc-type-tag">Decision</span>
+    </div>
+    <h2 id="sc-title">Loading...</h2>
+    <div id="timer-wrap" style="display:none" class="timer-wrap">
+      <div class="timer-svg">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle class="ring-bg" cx="26" cy="26" r="22"/>
+          <circle class="ring-fg" id="timer-ring" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="0" stroke="var(--danger)"/>
+        </svg>
+        <div class="ring-num" id="timer-num">60</div>
+      </div>
+      <div class="timer-label"><strong>Time Pressure Active</strong>Indecision costs the team - decide before the clock runs out.</div>
+    </div>
+    <div class="scenario-body" id="sc-body"></div>
+    <div class="options" id="sc-options"></div>
+    <div id="outcome-area" style="display:none">
+      <div class="outcome-banner" id="outcome-banner">
+        <div id="outcome-text"></div>
+        <div class="pts" id="outcome-pts"></div>
+      </div>
+      <div id="cascade-note" class="cascade-note" style="display:none"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="confirm-btn" onclick="confirmChoice()" disabled>Confirm Decision</button>
+      <button class="btn btn-secondary" id="next-btn" onclick="nextSc()" style="display:none">Next Scenario</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== DEBRIEF ======================== -->
+<div id="screen-debrief" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="debrief-photo-wrap">
+    <img class="debrief-photo"
+      src="https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=1920&q=80"
+      alt="Amazon rainforest"
+      onerror="this.style.display='none';this.nextElementSibling.style.background='linear-gradient(to bottom,rgba(6,9,16,0.4),rgba(6,9,16,0.95))'">
+    <div class="debrief-photo-overlay"></div>
+  </div>
+  <div class="debrief-header" id="debrief-header-block">
+    <div class="result-icon" id="db-icon"></div>
+    <div class="debrief-rule"></div>
+    <h1 id="db-title">Expedition Complete</h1>
+    <p id="db-sub"></p>
+  </div>
+  <div class="final-scores">
+    <div class="final-score-card">
+      <div class="label">Safety</div>
+      <div class="val safety" id="fs-safety">0</div>
+      <div class="score-denom">/ 20</div>
+    </div>
+    <div class="final-score-card">
+      <div class="label">Health</div>
+      <div class="val time" id="fs-time">0</div>
+      <div class="score-denom">/ 15</div>
+    </div>
+    <div class="final-score-card">
+      <div class="label">Cohesion</div>
+      <div class="val focus" id="fs-focus">0</div>
+      <div class="score-denom">/ 15</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Expedition Verdict</h3>
+    <p id="db-narrative" style="line-height:1.9;color:rgba(237,240,248,0.78)"></p>
+  </div>
+  <div class="card">
+    <h3>Decision Log</h3>
+    <p class="muted" style="font-size:0.79rem;margin-bottom:16px">Earlier decisions shaped later crises.</p>
+    <div class="decision-log" id="db-log"></div>
+  </div>
+  <div class="card">
+    <h3>Psychological Debrief</h3>
+    <p id="db-psych" style="color:rgba(237,240,248,0.78);line-height:1.9"></p>
+  </div>
+  <div class="btn-row" style="justify-content:center;margin-top:8px;flex-wrap:wrap;gap:10px">
+    <button class="btn btn-secondary" onclick="window.location.href='index.html'">&#8592; Home</button>
+    <button class="btn btn-secondary" onclick="generatePDFReport()" style="border-color:rgba(77,184,122,0.3);color:var(--accent)">&#8595; Download Report</button>
+    <button class="btn btn-primary" onclick="resetGame()">Play Again</button>
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<script>
+/* ============================================================
+   GAME DATA
+   ============================================================ */
+const ARCHETYPES=[
+{id:'navigator',name:'Navigator',tagline:'Creates clarity through structure, direction, and planning.',response:'Lay out the options clearly and map the fastest, safest route forward.'},
+{id:'guardian',name:'Guardian',tagline:'Protects the team by managing risk and upholding standards.',response:'Assess the risk first. Protect the group before moving forward.'},
+{id:'synchroniser',name:'Synchroniser',tagline:'Keeps people aligned so the team moves as one system.',response:'Make sure everyone understands the situation and is working together.'},
+{id:'anchor',name:'Anchor',tagline:'Stabilises the group under pressure by regulating emotion.',response:'Stay calm, keep the group steady, and create space to think clearly.'},
+{id:'connector',name:'Connector',tagline:'Builds trust and cohesion by keeping relationships strong.',response:'Check in with each person. Trust and communication come first.'},
+{id:'energiser',name:'Energiser',tagline:'Raises team energy and drives momentum forward.',response:'Lift the mood, maintain momentum, and keep people moving.'},
+{id:'decision_maker',name:'Decision-Maker',tagline:'Steps forward with clarity and commitment when action is needed.',response:'Make the call. Clarify the decision, own it, and move the team forward.'},
+{id:'explorer',name:'Explorer',tagline:'Finds new paths through experimentation and adaptation.',response:'Test assumptions. Look for options that are not obvious yet.'},
+{id:'innovator',name:'Innovator',tagline:'Challenges assumptions and generates new possibilities.',response:'Question whether the plan is still the right plan. What are we missing?'}
+];
+
+const ARCH_SCENARIO=`Your team is moving through flooded forest at dusk - water waist-deep, no GPS signal, and the trail markers are submerged. Marcos is 80 metres ahead and the forest noise is too loud to shout across. One team member is slowing badly. Another has stopped to check the map but cannot read the waterproofed printout in the fading light. The river level is still rising.\n\nUnder pressure, it is your natural preference to...`;
+
+const SCENARIOS=[
+{id:'sc01',day:1,type:'normal',timed:false,title:'First camp - river landing',
+body:`The team arrives by boat at the mouth of the Ituí River, 40km into the Javari Valley. Marcos conducts a campsite assessment. He identifies three concerns: the chosen campground is within the 5-year flood zone, the water purification tablets are 4 months past manufacturer-recommended refresh date, and two team members have not completed their antimalarial medication loading dose.\n\nMarcos: "The jungle makes every problem bigger. Fix small problems now."`,
+options:[
+{id:'a',text:'Move camp to Marcos\'s recommended site on elevated ground. Replace water tablets from backup supply. Begin proper antimalarial protocol immediately.',quality:'best',safety:1,time:-1,focus:1,outcome:'Textbook start. Elevated campsite confirmed safe. Antimalarial dosing completed. Marcos looks satisfied. The team enters the forest with no early vulnerabilities.',tone:'good',cascade:'base_secure',log:'Marcos\'s camp assessment followed - all concerns addressed'},
+{id:'b',text:'Move the camp. Accept the water tablet risk. Complete antimalarial dosing.',quality:'ok',safety:0,time:0,focus:0,outcome:'Camp is safer for the move. Antimalarial dosing completed. The water tablet gap remains a latent issue - manageable if the team is careful.',tone:'ok',cascade:null,log:'Camp moved, antimalarial completed - water tablet risk accepted'},
+{id:'c',text:'Ignore all concerns. The research timetable is tight. "Marcos is being overcautious about standard expedition conditions."',quality:'worst',safety:-3,time:1,focus:-2,outcome:'Marcos says nothing further. Over the next three days the foundation of trust between him and the team quietly erodes. The camp stays where it is. All three vulnerabilities remain unresolved.',tone:'bad',cascade:'base_compromised',log:'Marcos\'s Day 1 assessment dismissed - all concerns ignored'},
+{id:'d',text:'Full team risk assessment vote before making any change.',quality:'ok',safety:0,time:-1,focus:2,outcome:'The team discusses thoroughly. The camp moves and the antimalarial is addressed. Water tablets remain a gap. The process strengthens team alignment at the cost of a half-day.',tone:'ok',cascade:'team_consensus',log:'Team vote on camp setup - consensus reached, partial resolution'}
+]},
+{id:'sc02',day:3,type:'normal',timed:false,title:'Equipment in the forest',
+body:`Day 3. Marcos conducts a systematic kit inspection before the first deep-forest transect. Issues: one machete handle is cracking (will fail under sustained use), the DEET concentration in the team's insect repellent is 20% vs the 40% recommended for Javari conditions, and the snakebite pressure bandages are missing from one medical kit. The Javari has lancehead and bushmaster species - both require immediate pressure immobilisation.`,
+options:[
+{id:'a',text:'Replace the machete handle from spares. Request high-concentration DEET from the support boat (2h delay). Redistribute snakebite bandages so all kits are complete.',quality:'best',safety:1,time:-1,focus:0,outcome:'Two-hour delay before departure. Every kit is complete and correct. Marcos confirms the team is properly equipped for primary forest. No latent equipment vulnerabilities remain.',tone:'good',cascade:'kit_complete',log:'Full kit replacement and redistribution - 2h delay, all gaps closed'},
+{id:'b',text:'Tape the machete handle. Use available DEET and apply more frequently. Accept the snakebite kit gap.',quality:'ok',safety:-1,time:0,focus:-1,outcome:'The repair holds for now. The DEET gap means higher exposure risk. The missing snakebite bandages are a genuine safety deficit that the team is choosing to live with.',tone:'ok',cascade:'kit_partial',log:'Partial kit fix - machete taped, snakebite bandage gap accepted'},
+{id:'c',text:'Dismiss Marcos\'s concerns. The team has done jungle expeditions before. Push on schedule.',quality:'worst',safety:-2,time:1,focus:-2,outcome:'Marcos records his concerns but says nothing further. Three latent vulnerabilities enter the forest with the team. The machete, the DEET, and the absent snakebite kit are problems waiting for conditions that will make them worse.',tone:'bad',cascade:'kit_compromised',log:'Marcos\'s kit concerns dismissed - all three gaps unresolved'},
+{id:'d',text:'Medic-led independent kit review. Catches the snakebite and machete, misses DEET.',quality:'ok',safety:1,time:-1,focus:0,outcome:'The medic addresses the two most critical issues. DEET concentration remains at 20%. Partial protection - better than nothing, but the insect exposure gap remains active.',tone:'ok',cascade:'kit_partial_fix',log:'Medic kit review - snakebite and machete fixed, DEET gap remains'}
+]},
+{id:'sc03',day:5,type:'normal',timed:false,title:'River crossing decision',
+body:`Day 5. The primary research transect requires crossing the Ituí River. Marcos assesses the crossing at first light: 40m wide, current 2.1m/s (fast), chest-deep at the ford. Three members are strong river swimmers. Two are not. Crocodilians (black caiman) have been sighted nearby. The research schedule shows this crossing on today's plan. An alternative: a 6km upriver detour to a safer shallow section with fixed rope.`,
+options:[
+{id:'a',text:'Take the 6km detour to the safe ford. Caiman sightings plus non-swimmers plus strong current is a non-negotiable combination.',quality:'best',safety:1,time:-1,focus:0,outcome:'Six-kilometre detour completed without incident. Marcos: "Good call. The ford is never worth it when the three conditions stack." The team crosses safely. Half a day lost. No one regrets it.',tone:'good',cascade:'safe_crossing',log:'Detour to safe ford - caiman and non-swimmer risk correctly assessed'},
+{id:'b',text:'Cross at the main ford with a fixed rope system and the strongest swimmers supporting those who need it.',quality:'ok',safety:-1,time:0,focus:-1,outcome:'The crossing is completed. One member loses footing briefly - recovered with rope assistance. The caiman does not approach. But the near-incident shakes the two weaker swimmers for the rest of the day.',tone:'ok',cascade:'main_ford',log:'Main ford crossed with rope system - near-incident, caiman kept distance'},
+{id:'c',text:'All cross at the main ford without rope system. "We\'ve done faster rivers than this."',quality:'worst',safety:-3,time:1,focus:-2,outcome:'Two members are swept partially downstream before being caught. Both are shaken. Marcos wades in to assist. He does not speak for an hour after. The caiman surfaces briefly 30m away during the crossing.',tone:'bad',cascade:'ford_incident',log:'Main ford without rope - two members swept, Marcos assists, caiman sighted'},
+{id:'d',text:'Strongest swimmers cross first to fix the rope, then everyone crosses with line support.',quality:'ok',safety:0,time:-1,focus:0,outcome:'Methodical crossing. The fixed rope makes the difference for the two weaker swimmers. Slower than option c. No incidents. Caiman observed on the far bank but did not approach.',tone:'ok',cascade:'rope_crossing',log:'Fixed rope crossing - methodical, no incidents, caiman observed on bank'}
+]},
+{id:'sc04',day:8,type:'crisis',timed:true,title:'Snakebite',
+body:`CRISIS - Day 8. Team member Dr. Solis is struck on the right calf by a fer-de-lance (lancehead) while stepping over a root. She calls out immediately. The strike location and fang marks are clear. The fer-de-lance is one of the Amazon's most dangerous snakes: haemotoxic venom, rapid onset, potentially fatal without antivenom. The nearest antivenom is at the river base camp - 3 hours travel. She is alert and mobile.\n\nTimer running.`,
+options:[
+{id:'a',text:'Immobilise the limb immediately with pressure bandage. Radio base camp to prepare antivenom and arrange boat evacuation. Solis is carried - no exertion, which accelerates venom spread. Move the team toward the river now.',quality:'best',safety:1,time:-1,focus:0,outcome:'Correct protocol executed without hesitation. Solis is carried to the river in 2h 40min. Antivenom administered at base camp. She recovers fully over 48 hours. Marcos: "You did everything right."',tone:'good',cascade:'snake_managed',log:'Fer-de-lance - correct immobilisation and evacuation, Solis recovers'},
+{id:'b',text:'Pressure bandage applied. Solis walks slowly assisted. Evacuation begun.',quality:'ok',safety:-1,time:0,focus:-1,outcome:'The exertion of walking accelerates venom absorption. Solis deteriorates faster than expected. Antivenom is administered on arrival but her recovery takes 5 days rather than 2. Functional outcome - but avoidable cost.',tone:'ok',cascade:'snake_walked',log:'Fer-de-lance - pressure bandage applied, Solis walked out, slower recovery'},
+{id:'c',text:'Incise the bite area and attempt suction. Continue with research. "She is stable. We have antivenom at camp."',quality:'worst',safety:-5,time:0,focus:-2,outcome:'Incision and suction is contraindicated - it damages tissue and introduces infection. Haemotoxic venom spreads unchecked. Solis collapses 40 minutes later. Emergency evacuation is scrambled under crisis conditions. Hospital treatment required in Atalaia do Norte.',tone:'bad',cascade:'snake_worsened',log:'Fer-de-lance - incision attempted, contraindicated, Solis collapses, emergency evac'},
+{id:'d',text:'Radio for medical advice before treating. 15-minute delay while venom spreading. Correct protocol confirmed - same as option a.',quality:'ok',safety:0,time:-1,focus:0,outcome:'The radio consultation confirms what Marcos already knew. Fifteen minutes lost. Protocol correctly applied. Solis recovers - but the delay added measurable risk during a time-critical window.',tone:'ok',cascade:'snake_advised',log:'Fer-de-lance - radio consultation first, 15min delay, correct protocol then applied'}
+]},
+{id:'sc05',day:11,type:'normal',timed:false,title:'Water source contamination',
+body:`Day 11. The team's primary water source - a tributary stream used for drinking water - shows a dead capybara 200m upstream. Marcos identifies the risk: leptospirosis. Bacteria in the animal's urine can contaminate the water system and survive for weeks. The team has been drinking this water for 3 days. The next clean water source is 4km south.`,
+options:[
+{id:'a',text:'Immediately switch to the 4km south source. Begin prophylactic doxycycline for all members who drank from the contaminated source. Marcos confirms this is the only safe response.',quality:'best',safety:1,time:-1,focus:0,outcome:'Four-kilometre reroute completed. Prophylactic doxycycline begun. Marcos: "Leptospirosis here is not a hospital story - it is a how-did-I-miss-this story. You did not miss it." No members develop symptoms.',tone:'good',cascade:'lepto_prevented',log:'Contaminated water source abandoned - prophylactic doxycycline started'},
+{id:'b',text:'Boil all water from the current source at 100°C for 10 minutes. Boiling kills leptospirosis. Accept the slower water supply rate.',quality:'ok',safety:0,time:-1,focus:0,outcome:'Boiling is effective. Leptospirosis risk eliminated from current source. The process slows camp routine considerably but no members develop symptoms. A sound decision with a time cost.',tone:'ok',cascade:'water_boiled',log:'Water source boiled at 100C - leptospirosis killed, time cost accepted'},
+{id:'c',text:'Continue using the current source with standard purification tablets. "We\'re downstream of the problem."',quality:'worst',safety:-3,time:1,focus:-2,outcome:'Standard tablets do not kill leptospirosis. Three members develop flu-like symptoms over the following week. Two require oral antibiotics from the medical kit. Research output drops significantly. Marcos is grim-faced but says nothing.',tone:'bad',cascade:'lepto_risk',log:'Contaminated source continued - tablets ineffective, three members infected'},
+{id:'d',text:'Test the water with the expedition kit before deciding.',quality:'ok',safety:1,time:-1,focus:1,outcome:'The expedition test kit confirms bacterial contamination above safe limits. The evidence makes the decision clear and unanimous. Team switches to the southern source and starts prophylactic treatment. The testing process strengthens team confidence in evidence-based decisions.',tone:'ok',cascade:'water_tested',log:'Water tested - contamination confirmed, team switches source unanimously'}
+]},
+{id:'sc06',day:14,type:'crisis',timed:true,title:'Flood surge',
+body:`CRISIS - Day 14, 6:40am. A flash flood surge is moving down the valley. Marcos is shouting from camp perimeter: the river has already risen 90cm in 40 minutes. Three team members are still in their sleeping areas. Camp equipment includes irreplaceable research data collection devices and medical supplies at ground level. The flood will reach camp in approximately 4 minutes.\n\nTimer running.`,
+options:[
+{id:'a',text:'Wake all people first - shout the alarm loudly. Get everyone moving to the elevated bivouac point Marcos designated on Day 1. Abandon all ground-level equipment. People before things.',quality:'best',safety:1,time:-1,focus:0,outcome:'Everyone is moving within 90 seconds. The elevated bivouac point - established on Day 1 - holds. Flood waters reach ground-level camp and submerge equipment. All people safe. Some equipment and data lost. Recoverable loss.',tone:'good',cascade:'flood_survived',log:'Flash flood - people evacuated first, equipment lost, everyone safe'},
+{id:'b',text:'Grab the medical kit and satellite phone first (30 seconds), then wake people, then move.',quality:'ok',safety:-1,time:0,focus:-1,outcome:'The 30-second equipment grab costs critical margin. Two people are woken late and are moving in ankle-deep water by the time they reach the high point. Everyone survives - but the near-miss is visible on their faces.',tone:'ok',cascade:'flood_partial',log:'Flash flood - medical kit grabbed first, late evacuation, ankle-deep near-miss'},
+{id:'c',text:'Attempt to move research equipment to safety.',quality:'worst',safety:-4,time:-2,focus:-2,outcome:'The equipment attempt costs 90 seconds that the team does not have. One member is knocked off their feet by the surge while carrying a data device. Equipment lost anyway. The member is rescued by Marcos. Research is now secondary to immediate recovery.',tone:'bad',cascade:'flood_incident',log:'Flash flood - equipment prioritised, member swept, Marcos rescues'},
+{id:'d',text:'Split: two wake people while two move critical equipment.',quality:'ok',safety:0,time:-1,focus:-1,outcome:'The split works in principle. Both groups complete their tasks with seconds to spare. High-stress execution under extreme time pressure. The equipment move proves partially successful. Cohesion takes a hit from the confusion of split command.',tone:'ok',cascade:'flood_split',log:'Flash flood - split team approach, marginal success, cohesion cost'}
+]},
+{id:'sc07',day:17,type:'normal',timed:false,title:'The malaria case',
+body:`Day 17. Team member Roberts has a temperature of 39.8°C, shaking chills, and headache - the classic presentation of Plasmodium falciparum malaria. The RDT test is positive. Falciparum malaria in the Javari can progress to cerebral malaria within 24-48 hours without treatment. The artemisinin-combination therapy (ACT) is in the medical kit. Marcos: "This person must be treated immediately and monitored. If fever does not break in 12 hours, we evacuate."`,
+options:[
+{id:'a',text:'Begin ACT immediately. Roberts rests completely. Two-hourly fever monitoring. Evacuation plan prepared in parallel.',quality:'best',safety:1,time:-1,focus:0,outcome:'ACT begun within the hour. Fever breaks at hour 14. Roberts is weak but recovers over 72 hours. Evacuation plan not needed. Marcos: "Falciparum is forgiving if you are fast. You were fast." Roberts returns to field duties on Day 22.',tone:'good',cascade:'malaria_treated',log:'Falciparum malaria - ACT started immediately, fever breaks at 14h, full recovery'},
+{id:'b',text:'Begin ACT. Roberts rests. Monitor every 4 hours. No immediate evacuation prep.',quality:'ok',safety:0,time:0,focus:-1,outcome:'ACT works. Roberts recovers over 5 days. The 4-hour monitoring interval misses a brief fever spike at hour 7 that resolves before the next check. Functional outcome, but the monitoring gap introduces avoidable risk.',tone:'ok',cascade:'malaria_watched',log:'Falciparum malaria - ACT started, 4h monitoring, recovery in 5 days'},
+{id:'c',text:'Monitor Roberts for 24 hours before starting treatment. "It might be dengue. Confirm before treating."',quality:'worst',safety:-4,time:0,focus:-2,outcome:'The 24-hour delay allows Plasmodium falciparum to multiply and penetrate the blood-brain barrier. Roberts develops confusion and extreme photosensitivity on hour 18. Emergency ACT started under crisis conditions. Helicopter evacuation required. Roberts survives but the mission is compromised.',tone:'bad',cascade:'malaria_delayed',log:'Falciparum malaria - treatment delayed 24h, cerebral malaria onset, helicopter evac'},
+{id:'d',text:'Radio the remote medical team for treatment confirmation before starting. 3-hour comms delay.',quality:'ok',safety:-1,time:-1,focus:0,outcome:'Remote team confirms ACT immediately. But the 3-hour comms delay means treatment begins 3 hours late - a significant window in falciparum progression. Roberts recovers but the delay is visible in how slow the recovery is.',tone:'ok',cascade:'malaria_confirmed',log:'Falciparum malaria - remote medical confirmation, 3h delay, slower recovery'}
+]},
+{id:'sc08',day:21,type:'crisis',timed:true,title:'Caiman encounter',
+body:`CRISIS - Day 21. The team is conducting a water sampling transect in a flooded forest section. Team member Dr. Vidal is in waist-deep water 40m from the nearest bank. Marcos has spotted a large black caiman (estimated 3.5m) 30m from Vidal and moving steadily in her direction. Vidal is facing away. The caiman is submerged except for its eyes.\n\nTimer running.`,
+options:[
+{id:'a',text:'Call Vidal\'s name firmly - no panic. Direct her to move slowly and steadily toward the nearest bank. Do not run. No splashing. Have the group create a noise perimeter from the bank.',quality:'best',safety:1,time:0,focus:0,outcome:'Vidal hears, understands, and moves with deliberate calm. The caiman pauses at the noise perimeter, changes direction, and submerges. Vidal reaches the bank. Marcos: "That is exactly how you do it." Water sampling suspended for the day.',tone:'good',cascade:'caiman_managed',log:'Caiman encounter - calm extraction, noise perimeter, Vidal reaches bank safely'},
+{id:'b',text:'Throw a large rock into the water near the caiman to divert its attention. Simultaneously call Vidal to move.',quality:'ok',safety:0,time:0,focus:-1,outcome:'The rock diversion works momentarily. Vidal moves toward the bank. The caiman resurfaces between Vidal and the bank but then turns away. High-stress resolution. The incident takes 20 minutes to process before the team can continue.',tone:'ok',cascade:'caiman_diverted',log:'Caiman encounter - rock diversion, caiman resurfaces between Vidal and bank, resolves'},
+{id:'c',text:'Shout and splash loudly to startle the caiman away.',quality:'worst',safety:-3,time:-1,focus:-2,outcome:'Loud splashing triggers a threat response in the caiman. It submerges and moves faster. Vidal is struck a glancing blow and falls into the water. Marcos wades in immediately. Vidal is recovered with lacerations on her forearm. Medical treatment required. Research halted for 3 days.',tone:'bad',cascade:'caiman_incident',log:'Caiman encounter - loud splashing triggers attack, Vidal lacerated, 3-day halt'},
+{id:'d',text:'Wade in yourself to create a distraction between Vidal and the caiman.',quality:'ok',safety:-2,time:0,focus:0,outcome:'The distraction works in the sense that the caiman tracks you instead of Vidal. Vidal reaches the bank. But the interposer is now the target. Marcos shouts instructions to back away slowly. Resolved without physical contact - but the situation was far more dangerous than it needed to be.',tone:'ok',cascade:'caiman_interposed',log:'Caiman encounter - self-interposition, Vidal safe, interposer exposed to risk'}
+]},
+{id:'sc09',day:26,type:'normal',timed:false,title:'Marcos falls ill',
+body:`Day 26. Marcos is running a temperature of 38.6°C. His diagnosis: a tropical parasitic infection - likely cutaneous leishmaniasis combined with bacterial infection from an untreated skin wound. He can walk but his forest navigation is impaired and he knows it. "I can show you on the map. But you must navigate today." Without Marcos as functional guide, the team is limited to a 3km radius of known trails.`,
+options:[
+{id:'a',text:'Treat Marcos fully. Rest day. The team conducts non-forest work: data entry, equipment maintenance, research design review. One day invested now prevents three days lost to a worsening guide.',quality:'best',safety:1,time:-1,focus:1,outcome:'Marcos responds to treatment within 24 hours. The rest day produces more completed data analysis than any previous day. Marcos is functional and grateful. He returns to navigation on Day 27 with full capacity.',tone:'good',cascade:'marcos_treated',log:'Marcos treated - rest day used for data analysis, full recovery in 24h'},
+{id:'b',text:'Treat Marcos and continue with the team navigating independently on known trails only.',quality:'ok',safety:0,time:0,focus:-1,outcome:'Independent navigation on known trails works - but narrowly. Two wrong turns add 4km. Research output is limited by the restricted radius. Marcos rests and partially recovers. The team manages, but the constraint is frustrating.',tone:'ok',cascade:'marcos_resting',log:'Marcos resting - team navigates known trails, 4km of wrong turns, limited output'},
+{id:'c',text:'Push Marcos to guide despite his condition. "His knowledge is irreplaceable. He can manage."',quality:'worst',safety:-2,time:1,focus:-2,outcome:'Marcos guides for 6 hours before becoming too ill to continue. His condition worsens significantly from the exertion. He is incapacitated for 3 days rather than 1. Research output collapses for the duration. The team also loses Marcos\'s trust.',tone:'bad',cascade:'marcos_worsened',log:'Marcos pushed through illness - condition worsens, 3-day incapacitation, trust damaged'},
+{id:'d',text:'Radio for a replacement guide from Atalaia do Norte. 48-hour wait.',quality:'ok',safety:1,time:-2,focus:0,outcome:'Replacement guide Anselmo arrives after 48 hours. He is competent but does not have Marcos\'s specific knowledge of this section of the valley. The wait costs two full research days but Marcos recovers properly.',tone:'ok',cascade:'replacement_guide',log:'Replacement guide requested - 48h wait, Marcos recovers, Anselmo competent but less specific'}
+]},
+{id:'sc10',day:32,type:'normal',timed:false,title:'Isolation psychology',
+body:`Day 32. Over a month into the forest with no outside contact except satellite check-ins. Three team members are showing signs of isolation psychology: emotional flatness, over-analysis of minor irritations, and a growing tendency to catastrophise minor problems. Dr. Vidal has started logging every potential risk in a daily anxiety inventory. Roberts - recovered from malaria - has become unusually withdrawn.`,
+options:[
+{id:'a',text:'Facilitated team session: everyone names what they are finding hardest and what is still meaningful. Specific actions taken to address named stressors where possible.',quality:'best',safety:0,time:-1,focus:3,outcome:'The session takes 90 minutes and is uncomfortable at several points. Three specific stressors are named and addressed: sleeping rotation, communication protocols, and the research update call schedule. Vidal\'s anxiety inventory disappears. Roberts speaks in full sentences again by evening.',tone:'good',cascade:'psych_reset',log:'Facilitated isolation session - stressors named, specific actions taken, cohesion surges'},
+{id:'b',text:'Brief the team on isolation psychology as a normal adaptive response. Create shared vocabulary for what they are experiencing.',quality:'ok',safety:0,time:0,focus:1,outcome:'The psychoeducation helps. Knowing the pattern has a name and is normal reduces its power slightly. Partial recovery. Vidal\'s inventory continues but with less catastrophising. Roberts acknowledges the withdrawal but does not address its root.',tone:'ok',cascade:null,log:'Isolation psychology named and normalised - partial cohesion recovery'},
+{id:'c',text:'Ignore it. "Everyone signed up for 60 days in the Amazon. Focus on the research."',quality:'worst',safety:-1,time:1,focus:-3,outcome:'The psychological pressure compounds over the following two weeks. Decision quality degrades during the expedition\'s most technically demanding phase. By Day 40, two members are in functional conflict that no one is managing. The lake system research is affected.',tone:'bad',cascade:'psych_deterioration',log:'Isolation psychology ignored - degrading decision quality, functional conflict emerging'},
+{id:'d',text:'Increase daily research schedule to fill idle time and reduce introspective space.',quality:'ok',safety:0,time:1,focus:-1,outcome:'Busyness temporarily suppresses the symptoms. Short-term effect only. The underlying isolation psychology is not addressed - it is deferred. It will surface at a more critical point.',tone:'ok',cascade:null,log:'Busier schedule used to suppress isolation symptoms - deferred not resolved'}
+]},
+{id:'sc11',day:38,type:'normal',timed:false,title:'Research route choice',
+body:`Day 38. The expedition's primary unvisited research site - a lake system documented from satellite imagery as having extraordinary biodiversity indicators - requires choosing between two routes. Route A: 3 days through primary forest, no known hazards, arrives at the lake system with full team resources. Route B: 1.5 days through seasonally flooded forest, higher physical demands, but passes through the only known black-water river of the Javari with rare ichthyological species. Time and team resources favour Route A.`,
+options:[
+{id:'a',text:'Route A. The lake system is the primary objective. Arrive in full strength with good safety margin.',quality:'best',safety:1,time:-1,focus:0,outcome:'Three-day traverse completed without incident. Team arrives at the lake system in good physical condition with full medical kit and research equipment intact. Marcos: "Now you have the energy to do the work properly."',tone:'good',cascade:'route_safe',log:'Route A chosen - primary forest, full team resources on arrival at lake system'},
+{id:'b',text:'Route B - the rare river species are scientifically significant enough to accept the additional challenge.',quality:'ok',safety:-1,time:1,focus:-1,outcome:'The flooded forest traverse produces exceptional ichthyological data from the black-water river. The team arrives at the lake system exhausted. Two members have minor foot infections from extended water exposure. Research quality at the lake is affected.',tone:'ok',cascade:'route_challenging',log:'Route B chosen - rare ichthyological data collected, team arrives exhausted with foot infections'},
+{id:'c',text:'Route B at maximum pace. "The flooded forest is manageable. We\'ve done harder."',quality:'worst',safety:-3,time:2,focus:-2,outcome:'Maximum pace through flooded forest exceeds the team\'s sustainable capacity. One member develops heat exhaustion on day 2. The team arrives at the lake system in poor condition with compromised decision-making capacity for the critical research phase.',tone:'bad',cascade:'route_incident',log:'Route B at maximum pace - heat exhaustion, team arrives compromised for lake research'},
+{id:'d',text:'Let the scientists choose independently based on research priorities.',quality:'ok',safety:0,time:0,focus:-1,outcome:'The scientists choose Route B by majority. Route B is completed. The process of independent choice without clear leadership creates confusion about the decision rationale. Some members feel the choice was made without them.',tone:'ok',cascade:null,log:'Scientist-led route choice - Route B selected, leadership gap created confusion'}
+]},
+{id:'sc12',day:40,type:'summit',timed:true,title:'The lake system',
+body:`SUMMIT PUSH - Day 40. The team has reached the lake system - exactly as the satellite imagery suggested. An extraordinary convergence of species. But Dr. Vidal, working at the water's edge at dawn, has waded into what she thought was shallow water. She cannot move her right leg - it is caught in a tangle of submerged root systems under the water. The water is rising with the morning flood pulse. She has approximately 8 minutes before the water level makes breathing impossible.\n\nTimer running.`,
+options:[
+{id:'a',text:'Immediate response. Two people enter the water. Marcos guides on safe entry. Root system cut with machete from below. Controlled, methodical extraction.',quality:'best',safety:1,time:-1,focus:0,outcome:'Vidal is extracted in 4 minutes and 20 seconds. Root system severed cleanly with the machete. No injury beyond bruising. The lake system research proceeds. By 9am the team is collecting the most significant biodiversity data of the expedition.',tone:'good',cascade:'research_complete',log:'Vidal extracted from root system - machete, 4m20s, lake system research completed'},
+{id:'b',text:'All four pull from above with rope while Marcos guides. Fast but high loading risk on trapped limb.',quality:'ok',safety:-1,time:0,focus:-1,outcome:'Vidal is extracted. The force required causes a partial ligament strain in her right ankle. She can walk but is in pain. Research continues at reduced capacity. The lake system data is collected but Vidal cannot wade for the final two days.',tone:'ok',cascade:'research_complete',log:'Vidal extracted by rope pull - ligament strain, research continues at reduced capacity'},
+{id:'c',text:'Vidal self-extracts. "She\'s a strong swimmer and resourceful."',quality:'worst',safety:-5,time:0,focus:-3,outcome:'Vidal cannot self-extract - the root tangle holds. The water rises while the team debates. Marcos enters the water himself and begins cutting. Time lost. Vidal inhales water before extraction is complete. Medical emergency. Lake system research abandoned. Evacuation initiated.',tone:'bad',cascade:'vidal_incident',log:'Vidal not assisted - water inhaled, medical emergency, lake research abandoned, evacuation'},
+{id:'d',text:'Two people create a water dam with equipment to slow the flood pulse while others extract.',quality:'ok',safety:0,time:-1,focus:-1,outcome:'The dam slows the water rise by approximately 90 seconds - enough additional margin to complete the extraction without extreme time pressure. Vidal extracted safely with minor bruising. Research proceeds. The creative solution costs time to implement.',tone:'ok',cascade:'research_complete',log:'Water dam improvised - extra margin created, Vidal extracted safely, research proceeds'}
+]},
+{id:'sc13',day:50,type:'normal',timed:false,title:'Return journey',
+body:`Day 50. The team is returning downriver toward Atalaia do Norte. The research is substantially complete. Post-achievement release is visible: two members are moving with less discipline on river banks, Marcos is quieter than usual, watchfulness has softened across the group. The Javari does not differentiate between the outbound and the return. Three of the most serious incidents in Amazon expedition history happened on the return journey.`,
+options:[
+{id:'a',text:'Named safety reset. Explicit acknowledgment that return routes carry specific post-achievement risks. Reinstated protocols for all river crossings and forest entry.',quality:'best',safety:1,time:0,focus:0,outcome:'The explicit naming creates immediate shared awareness. The two members who had relaxed visibly shift posture. Marcos nods. The return journey is completed with the same discipline as the outbound. No incidents.',tone:'good',cascade:null,log:'Return safety reset named explicitly - protocols reinstated, no incidents on return'},
+{id:'b',text:'Remind the team informally to maintain protocols. Light touch.',quality:'ok',safety:0,time:0,focus:-1,outcome:'The informal reminder is heard but not internalised. Discipline improves for 4 hours then softens again. Light touch is appropriate for minor drift - insufficient for post-achievement release.',tone:'ok',cascade:null,log:'Informal protocol reminder - temporary improvement, softens again within hours'},
+{id:'c',text:'Let the momentum carry them home. The team knows the route.',quality:'worst',safety:-3,time:1,focus:-2,outcome:'A team member slips on a river bank and falls 2 metres into shallow water. Impact injury to shoulder. Rescue by the team. Emergency medical management. The return now has an injury to manage for the final 8 days.',tone:'bad',cascade:'return_incident',log:'Return protocols ignored - river bank fall, shoulder injury, medical management for 8 days'},
+{id:'d',text:'Pair system for the return journey - everyone accountable to one other person\'s safety.',quality:'ok',safety:1,time:0,focus:-1,outcome:'The pair system creates practical accountability without requiring sustained high alertness from any one person. Return completed safely. Two pairs spot each other\'s near-misses. Effective structural solution.',tone:'ok',cascade:null,log:'Return pair system implemented - practical accountability, two near-misses spotted and managed'}
+]},
+{id:'sc14',day:58,type:'normal',timed:false,title:'Debrief at Atalaia do Norte',
+body:`Day 58. The team is back at Atalaia do Norte. 60 days in the Javari Valley. The research data is extraordinary. Marcos is at the debrief table. He says: "In this valley, I have seen teams come back broken and teams come back changed. What is the difference? They talk about what they learned." The research director calls for a structured final debrief.`,
+options:[
+{id:'a',text:'Full structured debrief: each decision reviewed, each moment of pressure examined. Marcos offers a closing observation.',quality:'best',safety:0,time:0,focus:2,outcome:'Three hours. Uncomfortable at points. Marcos\'s closing observation - spoken quietly, in Portuguese then English - is about the difference between courage and recklessness: "The forest tests both equally. Only one of them leaves." The team leaves changed.',tone:'good',cascade:null,log:'Full structured debrief - all decisions reviewed, Marcos\'s closing observation delivered'},
+{id:'b',text:'Group discussion over food. Some insight. Not all voices heard.',quality:'ok',safety:0,time:0,focus:0,outcome:'Warm and nourishing. Some genuine insight surfaces around the table. But the quieter members do not speak and the loudest voices shape the narrative. Half the learning stays inside people who did not get a structure to express it.',tone:'ok',cascade:null,log:'Informal group debrief over food - partial insight, quieter voices not heard'},
+{id:'c',text:'Skip the formal debrief. The research data speaks for itself.',quality:'worst',safety:0,time:0,focus:-2,outcome:'The data does not speak for itself about the decisions. Within 72 hours most of the psychological learning from 60 days will have evaporated. What remains will be stories rather than understanding. The Javari gave the team more than this deserved.',tone:'bad',cascade:null,log:'Debrief skipped - research data only, psychological learning lost within 72h'},
+{id:'d',text:'Individual written reflections then group session. Marcos\'s closing observation anchors the final learning.',quality:'best',safety:0,time:0,focus:1,outcome:'Individual reflection before group sharing means every voice arrives prepared. The introverts - who carried some of the heaviest cognitive load in the forest - finally speak fully. Marcos\'s observation lands differently for each person, which is precisely its value.',tone:'good',cascade:null,log:'Individual reflection then group session - all voices heard, Marcos anchors learning'}
+]}
+];
+
+/* ============================================================
+   GAME STATE
+   ============================================================ */
+const RESOURCE_MAX={safety:20,time:15,focus:15};
+const STARTING_RESOURCES={safety:20,time:15,focus:15};
+const SEEDED_TOP_SCORES=[
+  {name:'FUNAI Research Unit',s:45},
+  {name:'Team Solimoes',s:22},
+  {name:'Verde Watch',s:15}
+];
+
+const SCORE_TUNING={timeTradeoff:{scenario:'sc11',option:'b'}};
+
+function tuneScenarioScores(scenarios,config){
+  scenarios.forEach((sc,scIndex)=>{
+    sc.options.forEach(opt=>{
+      const isTimeTradeoff=config.timeTradeoff&&sc.id===config.timeTradeoff.scenario&&opt.id===config.timeTradeoff.option;
+      if(isTimeTradeoff){
+        opt.time=1;
+        if(opt.safety>=0)opt.safety=-1;
+      }else if(opt.time>-1){
+        opt.time=-1;
+      }
+      if(opt.quality==='best'){
+        if(opt.focus>-1&&scIndex%3!==1)opt.focus=-1;
+        else if(opt.focus>0)opt.focus=0;
+      }else if(opt.quality==='ok'&&opt.focus>1){
+        opt.focus=1;
+      }
+    });
+  });
+}
+
+function getDeficitCarryText(opt){
+  const deficits=[];
+  if(opt.safety<0)deficits.push('safety');
+  if(opt.time<0)deficits.push('time');
+  if(opt.focus<0)deficits.push('focus');
+  if(!deficits.length)return '';
+  if(deficits.length===1)return `This leaves the expedition carrying a ${deficits[0]} deficit into what comes next.`;
+  return `This leaves the expedition carrying ${deficits.slice(0,-1).join(', ')} and ${deficits[deficits.length-1]} deficits into what comes next.`;
+}
+
+tuneScenarioScores(SCENARIOS,SCORE_TUNING);
+
+function getStartingResources(){return {...STARTING_RESOURCES};}
+
+let S={teamName:'Team Javari',playerCount:6,players:[],curPlayer:0,res:getStartingResources(),scIdx:0,selected:null,flags:[],log:[],timer:null,timerSec:60,timerExp:false,gameOver:false,others:[],callerIdx:0};
+let selArch=null;
+
+function injectNames(str){
+  if(!str)return str;
+  const names=S.players.map(p=>p.name);
+  const pA=names[0]||'Alex';
+  const pB=names.length>1?names[1]:'Jordan';
+  return str.replace(/\{PLAYER_A\}/g,pA).replace(/\{PLAYER_B\}/g,pB);
+}
+
+/* ============================================================
+   GAME FUNCTIONS
+   ============================================================ */
+function goTo(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0)}
+
+function renderPlayerFields(){
+  const n=Math.min(9,Math.max(1,parseInt(document.getElementById('player-count-input').value)||1));
+  const c=document.getElementById('player-name-fields');c.innerHTML='';
+  for(let i=0;i<n;i++){const d=document.createElement('div');d.style.marginTop='10px';d.innerHTML=`<label>Player ${i+1} name</label><input type="text" id="pn-${i}" placeholder="Enter name" maxlength="24">`;c.appendChild(d)}
+}
+renderPlayerFields();
+
+function startAssessments(){
+  const n=Math.min(9,Math.max(1,parseInt(document.getElementById('player-count-input').value)||1));
+  S.teamName=document.getElementById('team-name-input').value.trim()||'Team Javari';
+  S.playerCount=n;S.players=[];
+  for(let i=0;i<n;i++){const nm=(document.getElementById(`pn-${i}`)?.value.trim())||`Player ${i+1}`;S.players.push({name:nm,arch:null})}
+  S.curPlayer=0;showArch();
+}
+
+function showArch(){
+  const p=S.players[S.curPlayer];
+  document.getElementById('arch-heading').textContent=`${p.name} - choose your archetype`;
+  document.getElementById('arch-scenario').textContent=ARCH_SCENARIO;
+  selArch=null;document.getElementById('arch-confirm').disabled=true;
+  const taken=S.players.slice(0,S.curPlayer).map(x=>x.arch).filter(Boolean);
+  const grid=document.getElementById('arch-grid');grid.innerHTML='';
+  ARCHETYPES.forEach(a=>{
+    const c=document.createElement('div');
+    c.className='arch-card'+(taken.includes(a.id)?' taken':'');
+    c.dataset.id=a.id;
+    c.innerHTML=`<div class="arch-name">${a.name}</div><div class="arch-tagline">${a.response}</div>`;
+    c.onclick=()=>pickArch(a.id);grid.appendChild(c);
+  });
+  goTo('screen-archetype');
+}
+
+function pickArch(id){
+  const taken=S.players.slice(0,S.curPlayer).map(x=>x.arch).filter(Boolean);
+  if(taken.includes(id))return;
+  selArch=id;
+  document.querySelectorAll('.arch-card').forEach(c=>c.classList.toggle('selected',c.dataset.id===id));
+  document.getElementById('arch-confirm').disabled=false;
+}
+
+function confirmArch(){
+  if(!selArch)return;
+  S.players[S.curPlayer].arch=selArch;S.curPlayer++;
+  if(S.curPlayer<S.playerCount)showArch();else showIntro();
+}
+
+function showIntro(){
+  const badges=S.players.map(p=>{const a=ARCHETYPES.find(x=>x.id===p.arch);return`<span class="team-badge"><span class="dot"></span>${p.name} - ${a?a.name:'?'}</span>`}).join('');
+  document.getElementById('team-summary').innerHTML=`<div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.05em;text-transform:uppercase">Your Expedition Team</div>${badges}`;
+  S.others=SEEDED_TOP_SCORES.map(team=>({...team}));
+  goTo('screen-intro');
+}
+
+function startGame(){
+  S.scIdx=0;S.res=getStartingResources();S.flags=[];S.log=[];S.gameOver=false;S.selected=null;S.callerIdx=0;
+  document.getElementById('hdr-name').textContent=S.teamName;
+  goTo('screen-game');renderSc();
+}
+
+function renderSc(){
+  const sc=SCENARIOS[S.scIdx];S.selected=null;killTimer();
+  document.getElementById('hdr-day').textContent=sc.day;
+  document.getElementById('hdr-sc').textContent=S.scIdx+1;
+  document.getElementById('sc-day-tag').textContent=`Day ${sc.day}`;
+  const tt=document.getElementById('sc-type-tag');
+  if(sc.type==='crisis'){tt.textContent='Crisis';tt.className='tag tag-crisis'}
+  else if(sc.type==='summit'){tt.textContent='Summit Push';tt.className='tag tag-summit'}
+  else{tt.textContent='Decision';tt.className='tag tag-normal'}
+  document.getElementById('sc-title').textContent=sc.title;
+  document.getElementById('sc-body').textContent=injectNames(sc.body);
+
+  const cb=document.getElementById('caller-banner');
+  const cn=document.getElementById('caller-name-display');
+  if(S.players.length>0){
+    const caller=S.players[S.callerIdx%S.players.length];
+    cn.textContent=caller.name;
+    cb.style.display='flex';
+    S.callerIdx++;
+  }else{cb.style.display='none'}
+
+  const opts=[...sc.options].sort(()=>Math.random()-.5);
+  const oc=document.getElementById('sc-options');oc.innerHTML='';
+  opts.forEach((o,i)=>{
+    const b=document.createElement('button');b.className='option-btn';b.dataset.id=o.id;
+    b.innerHTML=`<span class="option-letter">${String.fromCharCode(65+i)}</span>${injectNames(o.text)}`;
+    b.onclick=()=>pickOpt(o.id);oc.appendChild(b);
+  });
+  document.getElementById('outcome-area').style.display='none';
+  document.getElementById('cascade-note').style.display='none';
+  document.getElementById('confirm-btn').disabled=true;
+  document.getElementById('confirm-btn').style.display='inline-block';
+  document.getElementById('confirm-btn').textContent='Confirm Decision';
+  document.getElementById('confirm-btn').className='btn btn-primary';
+  document.getElementById('next-btn').style.display='none';
+  updateBars();updateSb();
+  if(sc.timed)startTimer();else document.getElementById('timer-wrap').style.display='none';
+}
+
+function pickOpt(id){
+  S.selected=id;
+  document.querySelectorAll('.option-btn').forEach(b=>b.classList.toggle('selected',b.dataset.id===id));
+  document.getElementById('confirm-btn').disabled=false;
+}
+
+function confirmChoice(){
+  if(!S.selected&&!S.timerExp)return;
+  killTimer();document.getElementById('timer-wrap').style.display='none';
+  const sc=SCENARIOS[S.scIdx];
+  let opt;
+  if(S.timerExp&&!S.selected){
+    opt=sc.options.find(o=>o.quality==='worst')||sc.options[sc.options.length-1];
+    document.querySelectorAll('.option-btn').forEach(b=>{if(b.dataset.id===opt.id)b.classList.add('selected')});
+  }else{opt=sc.options.find(o=>o.id===S.selected)}
+  if(!opt)return;
+  S.res.safety=Math.min(RESOURCE_MAX.safety,S.res.safety+opt.safety);
+  S.res.time=Math.min(RESOURCE_MAX.time,S.res.time+opt.time);
+  S.res.focus=Math.min(RESOURCE_MAX.focus,S.res.focus+opt.focus);
+  if(opt.cascade)S.flags.push(opt.cascade);
+  const imp=opt.safety+opt.time+opt.focus;
+  S.log.push({day:sc.day,label:injectNames(opt.log),impact:imp,tone:opt.tone});
+  const ob=document.getElementById('outcome-banner');
+  ob.className='outcome-banner '+opt.tone;
+  const deficitText=getDeficitCarryText(opt);
+  document.getElementById('outcome-text').textContent=injectNames(opt.outcome)+(deficitText?` ${deficitText}`:'');
+  const pts=[[opt.safety,'Safety'],[opt.time,'Health'],[opt.focus,'Cohesion']].filter(x=>x[0]!==0).map(x=>`${x[1]} ${x[0]>0?'+':''}${x[0]}`).join('  ·  ');
+  document.getElementById('outcome-pts').textContent=pts||'No point change';
+  document.getElementById('outcome-area').style.display='block';
+  const futureText=[deficitText,opt.cascade&&opt.quality!=='best'?'This decision may affect a future scenario.':''].filter(Boolean).join(' ');
+  if(futureText){const csn=document.getElementById('cascade-note');csn.textContent=futureText;csn.style.display='block'}
+  updateBars();updateSb();
+  document.getElementById('confirm-btn').style.display='none';
+  document.querySelectorAll('.option-btn').forEach(b=>b.disabled=true);
+  const total=S.res.safety+S.res.time+S.res.focus;
+  const isLast=S.scIdx>=SCENARIOS.length-1;
+  const nb=document.getElementById('next-btn');
+  if(S.res.safety<=0||S.res.time<=0||S.res.focus<=0||total<=0){nb.textContent='View Debrief';nb.onclick=()=>showDebrief(false)}
+  else if(isLast){nb.textContent='View Debrief';nb.onclick=()=>showDebrief(true)}
+  else{nb.textContent='Next Scenario';nb.onclick=nextSc}
+  nb.style.display='inline-block';
+}
+
+function nextSc(){S.scIdx++;if(S.scIdx>=SCENARIOS.length)showDebrief(true);else renderSc()}
+
+function startTimer(){
+  S.timerSec=60;S.timerExp=false;
+  document.getElementById('timer-wrap').style.display='flex';
+  tickTimer();
+  S.timer=setInterval(()=>{S.timerSec--;tickTimer();if(S.timerSec<=0){killTimer();S.timerExp=true;const cb=document.getElementById('confirm-btn');cb.textContent='Time\'s up - apply decision';cb.disabled=false;cb.className='btn btn-danger'}},1000);
+}
+function tickTimer(){
+  const s=S.timerSec;
+  document.getElementById('timer-num').textContent=s;
+  const offset=138.23*(1-s/60);
+  document.getElementById('timer-ring').setAttribute('stroke-dashoffset',offset);
+  const col=s>20?'var(--time)':s>8?'var(--warning)':'var(--danger)';
+  document.getElementById('timer-ring').setAttribute('stroke',col);
+  document.getElementById('timer-num').style.color=col;
+}
+function killTimer(){if(S.timer){clearInterval(S.timer);S.timer=null}}
+
+function updateBars(){
+  const r=S.res;
+  [
+    {valId:'rv-safety',barId:'rb-safety',cardId:'res-card-safety',val:r.safety,max:RESOURCE_MAX.safety},
+    {valId:'rv-time',  barId:'rb-time',  cardId:'res-card-time',  val:r.time,  max:RESOURCE_MAX.time},
+    {valId:'rv-focus', barId:'rb-focus', cardId:'res-card-focus', val:r.focus, max:RESOURCE_MAX.focus}
+  ].forEach(({valId,barId,cardId,val,max})=>{
+    document.getElementById(valId).textContent=val;
+    const pct=Math.max(0,val/max*100);
+    document.getElementById(barId).style.width=pct+'%';
+    const card=document.getElementById(cardId);
+    if(card){
+      if(val<=Math.ceil(max*0.25)&&val>0){card.classList.add('res-danger')}
+      else{card.classList.remove('res-danger')}
+    }
+  });
+}
+
+function updateSb(){
+  const sb=document.getElementById('scoreboard');
+  sb.style.display='block';
+  const my=S.res.safety+S.res.time+S.res.focus;
+  const all=[{name:S.teamName,s:my,me:true},...S.others].sort((a,b)=>b.s-a.s);
+  document.getElementById('score-rows').innerHTML=all.map((t,i)=>`<div class="score-row${t.me?' active-team':''}"><span>${i+1}. ${t.name}${t.me?' (you) \u2605':''}</span><span style="font-weight:700">${t.s}/50</span></div>`).join('');
+}
+
+function showDebrief(success){
+  killTimer();
+  const r=S.res;const total=r.safety+r.time+r.focus;
+  const hasComplete=S.flags.includes('research_complete');
+  const hasIncident=S.flags.includes('vidal_incident')||S.flags.includes('snake_worsened')||S.flags.includes('malaria_delayed');
+  let title,sub;
+  if(r.safety<=0||r.time<=0||r.focus<=0||total<=0){title='Expedition Failed - Team Compromised';sub='The cumulative impact of the team\'s decisions in the Javari Valley exceeded what the team could sustain. The forest does not negotiate.'}
+  else if(hasIncident&&total<28){title='Expedition Aborted - Medical Emergency';sub='The team returned safely. But a preventable crisis ended the research mission. The root cause was in decisions made before the emergency became visible.'}
+  else if(hasComplete&&total>=40){title='Operation Javari Complete';sub='The research objectives were achieved. The team left the Javari Valley with its data, its people, and a genuine understanding of what decision-making under extreme conditions demands.'}
+  else if(hasComplete&&total>=28){title='Javari Complete - At Significant Cost';sub='The research was completed, but the team paid heavily. Reflect on what the forest revealed about the decisions made in the first two weeks.'}
+  else{title='Returned - Research Incomplete';sub='The team returned safely. The full research objectives were not met. The decisions from Days 8, 14 and 17 shaped what became possible.'}
+  document.getElementById('db-icon').textContent='';
+  document.getElementById('db-title').textContent=title;
+  document.getElementById('db-sub').textContent=sub;
+  document.getElementById('fs-safety').textContent=r.safety;
+  document.getElementById('fs-time').textContent=r.time;
+  document.getElementById('fs-focus').textContent=r.focus;
+  let narr=`Your team finished with ${total} out of 50 points - Safety: ${r.safety}/20, Health: ${r.time}/15, Cohesion: ${r.focus}/15.\n\n`;
+  if(S.flags.includes('base_compromised'))narr+='The decision to ignore Marcos\'s camp assessment on Day 1 created vulnerabilities that the Javari exploited at multiple points throughout the 60 days. ';
+  if(S.flags.includes('kit_compromised'))narr+='Dismissing the equipment concerns on Day 3 left the team with latent vulnerabilities that the forest\'s conditions made progressively more dangerous. ';
+  if(S.flags.includes('malaria_delayed'))narr+='Delaying malaria treatment on Day 17 allowed Plasmodium falciparum to progress toward a potentially fatal trajectory. Falciparum does not wait for confirmation. ';
+  if(S.flags.includes('psych_deterioration'))narr+='Ignoring isolation psychology on Day 32 allowed cognitive quality to degrade through the expedition\'s most technically demanding phase. ';
+  if(S.flags.includes('research_complete'))narr+='The lake system research was completed - a result that required the full quality of the team\'s decision-making across 40 days of the most demanding environment in the Americas. ';
+  if(S.flags.includes('marcos_treated'))narr+='The decision to rest and treat Marcos on Day 26 rather than push him further was one of the most strategically significant calls of the expedition. His recovery made the lake system route possible. ';
+  document.getElementById('db-narrative').textContent=narr;
+  document.getElementById('db-log').innerHTML=S.log.map(d=>`<div class="log-item"><span class="log-day">Day ${d.day}</span><span class="log-text">${d.label}</span><span class="log-impact ${d.tone}">${d.impact>0?'+':''}${d.impact}</span></div>`).join('');
+  const archs=[...new Set(S.players.map(p=>{const a=ARCHETYPES.find(x=>x.id===p.arch);return a?a.name:null}).filter(Boolean))];
+  document.getElementById('db-psych').textContent=`Your team brought the following archetypes: ${archs.join(', ')}. The Amazon tests a specific dimension of team psychology: the capacity to maintain discipline and protocol when the environment itself is designed to distract and overwhelm your senses. Notice which archetypes maintained their function under sustained biological and psychological pressure - and which ones found the cumulative weight of the forest harder than the individual crises. The decisions that mattered most in the Javari Valley were rarely the dramatic ones. They were the choices on Day 1 and Day 3 - the quiet decisions to prepare properly before the forest made preparation impossible.`;
+  goTo('screen-debrief');
+}
+
+function resetGame(){
+  killTimer();
+  S={teamName:'Team Javari',playerCount:6,players:[],curPlayer:0,res:getStartingResources(),scIdx:0,selected:null,flags:[],log:[],timer:null,timerSec:60,timerExp:false,gameOver:false,others:[],callerIdx:0};
+  document.getElementById('player-count-input').value=6;renderPlayerFields();
+  goTo('screen-landing');
+}
+
+function confirmStopExpedition(){
+  if(confirm('Stop the expedition and view your results so far?'))showDebrief(false);
+}
+const REPORT_CONFIG={
+  expedition:'Canopy Descent',
+  subtitle:'Javari Valley, Western Amazon, Brazil — June 2024',
+  duration:'50 days',
+  res2name:'Health',res3name:'Cohesion',
+  accentColor:'#4db87a',accent2Color:'#3da068',
+  medical:[
+    {title:'Snakebite Protocol — Fer-de-lance & Amazon Pit Vipers',content:'The fer-de-lance (Bothrops atrox) is responsible for more snakebite fatalities in South America than any other species. It is hemotoxic — venom destroys red blood cells and causes internal bleeding. Symptoms develop within 15–30 minutes: severe local pain, rapid swelling, bruising tracking up the limb, nausea, hypotension. Field protocol: immobilise the limb at heart level — not elevated, not lowered; remove all jewellery and constricting items; mark the edge of swelling with a pen every 15 minutes to track progression; do NOT cut and suck, apply tourniquets, or use electric shock treatments — these cause additional tissue damage without benefit. Evacuation is the only treatment — antivenom must be administered in a medical facility. Estimated evacuation time must be calculated before any jungle penetration, not after a bite.'},
+    {title:'Leptospirosis & Water-Borne Disease',content:'Leptospirosis is transmitted through water or soil contaminated by animal urine — ubiquitous in Amazon river systems. Entry is through cuts, mucous membranes, or conjunctiva. Symptoms (5–14 day incubation): fever, severe headache, muscle pain especially in calves, red eyes, jaundice. Severe cases (Weil\'s disease) cause liver and kidney failure. Prevention: all river water treated before consumption; cuts and abrasions covered and waterproofed before any water contact; protective footwear worn during river crossings; leptospirosis prophylaxis (doxycycline) considered for extended Amazon immersion. Treatment: doxycycline or amoxicillin for mild cases; hospitalisation for severe. Any team member showing signs during the expedition is evacuated.'},
+    {title:'Malaria Prevention & Recognition',content:'Malaria is endemic in the Javari Valley, transmitted by Anopheles mosquitoes primarily at dusk and dawn. P. falciparum (cerebral malaria) is fatal if untreated. Symptoms: fever with cyclical pattern (every 48–72 hours), chills, sweats, headache, muscle pain, fatigue. Cerebral malaria: confusion, seizures, loss of consciousness — medical emergency requiring immediate evacuation. Prevention: DEET repellent >30% applied at dusk; long sleeves and trousers from 1700h; permethrin-treated tent and sleeping area; prophylactic antimalarials (mefloquine, doxycycline, or atovaquone-proguanil) started 1–2 weeks before entry. Any fever above 38.5°C in a returned jungle traveller is presumed malaria until proven otherwise.'},
+    {title:'Flash Flood Emergency Response',content:'Amazon river levels can rise 3–4 metres within hours following upstream rainfall — often with no local warning. Camp siting protocol: minimum 4 metres above current water level on a rising river (8 metres in rainy season); camp departure assessment every dawn and pre-storm; rapid evacuation route identified and cleared at every camp. Flash flood response: move to high ground immediately, do not attempt to cross rising water; personal flotation devices worn by all team members during river travel; swim-to-shore protocol: float feet-first, angle across the current at 45 degrees, never fight the current directly.'},
+    {title:'Caiman & Wildlife Encounter Protocol',content:'Black caimans (up to 5m) and spectacled caimans are present throughout the Javari. They are ambush predators most active at night and at water edges at dusk. Protocol: no swimming or bathing in still water or at river edges; headtorch scan of water before any night movement near rivers; if charged, run in a straight line — caimans fatigue quickly in pursuit; camp perimeter checked for caiman signs before tent establishment. Jungle medical principle: the bite is less dangerous than the infection — all bites, scratches, and skin breaks are cleaned with potable water and iodine immediately and monitored for infection signs.'}
+  ],
+  leadership:[
+    {title:'Indigenous Knowledge & FUNAI Protocol',content:'The Javari Valley is home to some of the world\'s last uncontacted indigenous peoples, protected by FUNAI (Brazil\'s indigenous affairs agency). All expedition route planning must account for indigenous territory boundaries. The FUNAI specialist\'s assessment of which routes are safe for external teams is authoritative and non-negotiable — it reflects legal obligations, safety considerations, and ethical duties that override expedition objectives. Any contact with uncontacted peoples is an emergency requiring immediate withdrawal and FUNAI notification.'},
+    {title:'Guide Incapacitation Contingency',content:'When the primary local guide becomes incapacitated by illness or injury, the expedition faces its most critical leadership test. Immediate protocol: halt forward movement; inventory navigation resources (GPS, maps, compass); identify the last confirmed waypoint; calculate distance and bearing to nearest extraction point; contact support network to activate contingency extraction plan. The expedition leader must resist the pressure to continue on the assumption that the guide will recover — decision is made on current capability, not projected recovery.'},
+    {title:'River Crossing Decision Framework',content:'All major river crossings require a structured assessment before commitment: depth and speed assessed by throwing a branch and timing its passage; bank entry and exit points identified before entering water; crossing conducted on rope with a safety swimmer downstream; any team member who cannot swim is crossed using a improvised flotation system. Abort criteria: current speed above walking pace; visibility below knee depth; any sign of upstream rain or thunderstorm; crossing point within 200m of rapids or falls.'},
+    {title:'Jungle Isolation Psychology',content:'Extended jungle isolation creates a specific psychological pattern: sensory overload transitions to sensory monotony; the absence of open horizons creates claustrophobia in some team members; constant noise and heat generate chronic low-level stress. Warning signs: a team member who stops eating, stops communicating, or begins making uncharacteristically poor navigation decisions requires immediate individual attention. Leadership response: assign a specific, meaningful task; pair with the most experienced team member; reduce that person\'s decision-making load while maintaining their sense of contribution.'}
+  ]
+};
+function generatePDFReport(){
+  const r=S.res;const total=r.safety+r.time+r.focus;
+  const dateStr=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  const archLines=S.players.map(p=>{const a=ARCHETYPES.find(x=>x.id===p.arch);return`<div class="tmb"><span class="tarch">${a?a.name:'—'}</span><span class="tname">${p.name}</span><span class="tdesc">${a?a.tagline:''}</span></div>`}).join('');
+  const decRows=S.log.map(d=>`<tr><td>Day ${d.day}</td><td>${d.label}</td><td class="${d.tone}">${d.impact>0?'+':''}${d.impact}</td></tr>`).join('');
+  const medHtml=REPORT_CONFIG.medical.map(m=>`<div class="section"><h3>${m.title}</h3><p>${m.content}</p></div>`).join('');
+  const ldHtml=REPORT_CONFIG.leadership.map(l=>`<div class="section"><h3>${l.title}</h3><p>${l.content}</p></div>`).join('');
+  const ac=REPORT_CONFIG.accentColor;const a2=REPORT_CONFIG.accent2Color;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Expedition Report — ${REPORT_CONFIG.expedition}</title><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',Georgia,serif;font-size:11pt;color:#1a1a2e;line-height:1.72;background:#fff}.page{max-width:210mm;margin:0 auto;padding:14mm 18mm}h1{font-family:'Space Grotesk',sans-serif;font-size:26pt;font-weight:700;letter-spacing:-0.02em;color:#0d1117;margin-bottom:3px}h2{font-family:'Space Grotesk',sans-serif;font-size:13pt;font-weight:700;color:#0d1117;margin:22px 0 10px;padding-bottom:6px;border-bottom:2px solid #e4e4ee}h3{font-family:'Space Grotesk',sans-serif;font-size:10.5pt;font-weight:600;color:#1a1a2e;margin:0 0 6px}p{margin-bottom:10px;color:#2a2a3e;font-size:10pt}.eyebrow{font-family:'Space Grotesk',sans-serif;font-size:7.5pt;letter-spacing:0.22em;text-transform:uppercase;color:#999;margin-bottom:5px}.accent{color:${ac}}.rule{width:36px;height:3px;background:${ac};margin:10px 0 14px;border-radius:2px}.subtitle{font-size:10pt;color:#555;margin-bottom:2px}.meta-row{display:flex;gap:20px;flex-wrap:wrap;margin:14px 0;padding:12px 16px;background:#f7f8fc;border-radius:6px;border:1px solid #e8e8f0}.mi .label{font-family:'Space Grotesk',sans-serif;font-size:7pt;text-transform:uppercase;letter-spacing:0.12em;color:#999;margin-bottom:3px}.mi .val{font-weight:600;font-size:11pt;color:#1a1a2e}.sgrid{display:flex;gap:14px;margin:14px 0}.sc{flex:1;padding:14px 18px;border-radius:7px;border:1px solid #e8e8f0;text-align:center}.sc .slabel{font-family:'Space Grotesk',sans-serif;font-size:7pt;text-transform:uppercase;letter-spacing:0.12em;color:#999;margin-bottom:7px}.sc .sval{font-family:'Space Grotesk',sans-serif;font-size:24pt;font-weight:700}.sc .sdenom{font-size:8pt;color:#999;margin-top:3px}.sv-s{color:#dc4f4f}.sv-t{color:${ac}}.sv-f{color:${a2}}table{width:100%;border-collapse:collapse;margin:10px 0;font-size:9.5pt}th{font-family:'Space Grotesk',sans-serif;font-size:7.5pt;text-transform:uppercase;letter-spacing:0.1em;color:#999;padding:7px 10px;border-bottom:2px solid #e8e8f0;text-align:left}td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.55}tr:last-child td{border-bottom:none}.good{color:#2d9e6a;font-weight:600}.ok{color:#c07030;font-weight:600}.bad{color:#c0303a;font-weight:600}.section{margin-bottom:12px;padding:12px 16px;background:#f9fafb;border-radius:5px;border-left:3px solid ${ac}}.tmb{display:flex;gap:10px;padding:7px 12px;background:#f7f8fc;border-radius:4px;margin-bottom:5px;align-items:baseline;font-size:9.5pt}.tarch{font-weight:600;color:${ac};min-width:110px;font-family:'Space Grotesk',sans-serif}.tname{color:#333;min-width:90px}.tdesc{color:#888;font-size:8.5pt}.disc{font-size:7.5pt;color:#bbb;margin-top:22px;padding-top:14px;border-top:1px solid #e8e8f0;line-height:1.6}@media print{body{font-size:9.5pt}.page{padding:8mm 12mm}h2{page-break-after:avoid}.section{page-break-inside:avoid}}</style></head><body><div class="page"><div class="eyebrow">The Expedition Game — Post-Expedition Report</div><h1><span class="accent">${REPORT_CONFIG.expedition}</span></h1><div class="subtitle">${REPORT_CONFIG.subtitle}</div><div class="rule"></div><div class="meta-row"><div class="mi"><div class="label">Team</div><div class="val">${S.teamName}</div></div><div class="mi"><div class="label">Expedition</div><div class="val">${REPORT_CONFIG.duration}</div></div><div class="mi"><div class="label">Total Score</div><div class="val">${total} / 50</div></div><div class="mi"><div class="label">Report Date</div><div class="val">${dateStr}</div></div></div><h2>Final Results</h2><div class="sgrid"><div class="sc"><div class="slabel">Safety</div><div class="sval sv-s">${r.safety}</div><div class="sdenom">/ 20</div></div><div class="sc"><div class="slabel">${REPORT_CONFIG.res2name}</div><div class="sval sv-t">${r.time}</div><div class="sdenom">/ 15</div></div><div class="sc"><div class="slabel">${REPORT_CONFIG.res3name}</div><div class="sval sv-f">${r.focus}</div><div class="sdenom">/ 15</div></div></div><h2>Team &amp; Archetypes</h2>${archLines||'<p style="color:#999">Solo play — no archetypes recorded.</p>'}<h2>Decision Log</h2><p style="font-size:9pt;color:#777;margin-bottom:8px">Each decision and its impact on Safety, ${REPORT_CONFIG.res2name}, and ${REPORT_CONFIG.res3name}.</p><table><thead><tr><th>Day</th><th>Decision Record</th><th>Impact</th></tr></thead><tbody>${decRows||'<tr><td colspan="3" style="color:#999">No decisions recorded.</td></tr>'}</tbody></table><h2>Expedition Medicine — Protocols &amp; Operating Procedures</h2><p style="font-size:9pt;color:#777;margin-bottom:10px">Current best practice for the medical and physiological challenges in this environment. For educational use.</p>${medHtml}<h2>Expedition Leadership — Operating Principles</h2><p style="font-size:9pt;color:#777;margin-bottom:10px">Leadership behaviours that define safe and effective performance in this context.</p>${ldHtml}<div class="disc">Generated by The Expedition Game · ${REPORT_CONFIG.expedition} · ${dateStr} · Medical protocols are for educational purposes only. In real expedition situations, consult qualified medical personnel and follow your organisation's established procedures.</div></div></body></html>`;
+  const w=window.open('','_blank','width=960,height=760');
+  if(!w){alert('Allow popups to download the report.');return;}
+  w.document.write(html);w.document.close();w.focus();
+  setTimeout(()=>{try{w.print()}catch(e){}},900);
+}
+
+/* ============================================================
+   VISUAL ENHANCEMENTS - canvas, goTo patch, debrief animation
+   ============================================================ */
+(function initVisuals(){
+
+  const _goTo=goTo;
+  window.goTo=function(id){
+    _goTo(id);
+    const cv=document.getElementById('universe-canvas');
+    const dh=document.getElementById('debrief-header-block');
+    cv.style.display=(id==='screen-landing')?'block':'none';
+    const nav=document.getElementById('fixed-nav');const fnHome=document.getElementById('fn-home');const fnStop=document.getElementById('fn-stop');
+    if(id==='screen-landing'){nav.style.display='none'}
+    else if(id==='screen-game'){nav.style.display='flex';fnHome.style.display='none';fnStop.style.display='inline-block'}
+    else{nav.style.display='flex';fnHome.style.display='inline-block';fnStop.style.display='none'}
+    if(id==='screen-debrief'){
+      setTimeout(()=>animateScores(),350);
+      const title=document.getElementById('db-title').textContent||'';
+      if(title.toLowerCase().includes('operation javari complete')){
+        dh.classList.add('summit-win');
+        setTimeout(()=>launchConfetti(),600);
+      }else{
+        dh.classList.remove('summit-win');
+      }
+    }
+  };
+
+  function animateScores(){
+    [
+      {elId:'fs-safety',max:RESOURCE_MAX.safety},
+      {elId:'fs-time',max:RESOURCE_MAX.time},
+      {elId:'fs-focus',max:RESOURCE_MAX.focus}
+    ].forEach(({elId,max})=>{
+      const el=document.getElementById(elId);
+      if(!el)return;
+      const target=parseInt(el.textContent)||0;
+      el.textContent='0';
+      let cur=0;
+      const steps=36;
+      const inc=target/steps;
+      let tick=0;
+      const iv=setInterval(()=>{
+        tick++;cur=Math.min(cur+inc,target);
+        el.textContent=Math.round(cur);
+        if(tick>=steps){clearInterval(iv);el.textContent=target}
+      },28);
+    });
+  }
+
+  function launchConfetti(){
+    const colors=['#4db87a','#6dcf93','#82d4a0','#ffffff','#3da068','#c8f0d8'];
+    for(let i=0;i<80;i++){
+      const dot=document.createElement('div');
+      dot.className='confetti-dot';
+      const c=colors[Math.floor(Math.random()*colors.length)];
+      const x=Math.random()*100;
+      const dur=1.8+Math.random()*2;
+      const delay=Math.random()*1.2;
+      const size=4+Math.random()*6;
+      dot.style.cssText=`left:${x}vw;top:-10px;width:${size}px;height:${size}px;background:${c};animation-duration:${dur}s;animation-delay:${delay}s;border-radius:${Math.random()>0.5?'50%':'2px'}`;
+      document.body.appendChild(dot);
+      setTimeout(()=>dot.remove(),(dur+delay)*1000+400);
+    }
+  }
+
+  const canvas=document.getElementById('universe-canvas');
+  const ctx=canvas.getContext('2d');
+  let pts=[],rafId,rotY=0,rotX=0.18;
+
+  function resize(){
+    canvas.width=window.innerWidth;
+    canvas.height=window.innerHeight;
+    buildPts();
+  }
+
+  function buildPts(){
+    pts=[];
+    const n=220;
+    for(let i=0;i<n;i++){
+      const phi=Math.acos(1-2*(i+0.5)/n);
+      const theta=Math.PI*(1+Math.sqrt(5))*i;
+      const r=0.88+Math.random()*0.12;
+      pts.push({
+        nx:r*Math.sin(phi)*Math.cos(theta),
+        ny:r*Math.sin(phi)*Math.sin(theta),
+        nz:r*Math.cos(phi),
+        size:Math.random()*2.2+0.3,
+        alpha:Math.random()*0.55+0.45,
+        pulse:Math.random()*Math.PI*2,
+        pSpd:Math.random()*0.022+0.007
+      });
+    }
+  }
+
+  function project(nx,ny,nz,radius,cx,cy){
+    const cy_=Math.cos(rotY),sy=Math.sin(rotY);
+    const x1=nx*cy_-nz*sy;
+    const z1=nx*sy+nz*cy_;
+    const cx_=Math.cos(rotX),sx=Math.sin(rotX);
+    const y1=ny*cx_-z1*sx;
+    const z2=ny*sx+z1*cx_;
+    const fov=900;
+    const sc=fov/(fov+z2*radius);
+    return{sx:cx+x1*radius*sc,sy:cy+y1*radius*sc,sz:z2,sc};
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    rotY+=0.0016;
+
+    const cx=canvas.width/2,cy=canvas.height/2;
+    const radius=Math.min(canvas.width,canvas.height)*0.31;
+
+    const projected=pts.map(p=>{
+      const pj=project(p.nx,p.ny,p.nz,radius,cx,cy);
+      p.pulse+=p.pSpd;
+      const tw=0.78+0.22*Math.sin(p.pulse);
+      const depth=(pj.sz+1)/2;
+      return{sx:pj.sx,sy:pj.sy,sz:pj.sz,
+        size:p.size*pj.sc,
+        a:p.alpha*depth*tw,depth};
+    }).sort((a,b)=>a.sz-b.sz);
+
+    /* connection lines */
+    ctx.save();
+    for(let i=0;i<projected.length;i++){
+      for(let j=i+1;j<projected.length;j++){
+        const dx=projected[i].sx-projected[j].sx;
+        const dy=projected[i].sy-projected[j].sy;
+        const d2=dx*dx+dy*dy;
+        if(d2<52*52){
+          const d=Math.sqrt(d2);
+          const alpha=(1-d/52)*0.085*Math.min(projected[i].depth,projected[j].depth);
+          ctx.strokeStyle=`rgba(60,180,100,${alpha})`;
+          ctx.lineWidth=0.5;
+          ctx.beginPath();
+          ctx.moveTo(projected[i].sx,projected[i].sy);
+          ctx.lineTo(projected[j].sx,projected[j].sy);
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+
+    /* stars */
+    projected.forEach(p=>{
+      if(p.a<0.015)return;
+
+      if(p.size>1.4){
+        const gr=ctx.createRadialGradient(p.sx,p.sy,0,p.sx,p.sy,p.size*3.8);
+        gr.addColorStop(0,`rgba(180,230,200,${p.a*0.38})`);
+        gr.addColorStop(1,`rgba(180,230,200,0)`);
+        ctx.fillStyle=gr;
+        ctx.beginPath();
+        ctx.arc(p.sx,p.sy,p.size*3.8,0,Math.PI*2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle=`rgba(200,240,215,${p.a})`;
+      ctx.beginPath();
+      ctx.arc(p.sx,p.sy,Math.max(p.size,0.28),0,Math.PI*2);
+      ctx.fill();
+    });
+
+    /* ambient glow */
+    const ag=ctx.createRadialGradient(cx,cy,0,cx,cy,radius*0.55);
+    ag.addColorStop(0,'rgba(40,160,80,0.045)');
+    ag.addColorStop(1,'rgba(40,160,80,0)');
+    ctx.fillStyle=ag;
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius*0.55,0,Math.PI*2);
+    ctx.fill();
+
+    rafId=requestAnimationFrame(draw);
+  }
+
+  function startCanvas(){if(!rafId){resize();draw()}}
+  function stopCanvas(){if(rafId){cancelAnimationFrame(rafId);rafId=null}}
+
+  window.addEventListener('resize',()=>{if(canvas.style.display!=='none')resize()});
+
+  document.addEventListener('mousemove',e=>{
+    const lnd=document.getElementById('screen-landing');
+    if(!lnd.classList.contains('active'))return;
+    const hc=lnd.querySelector('.hero-content');
+    if(!hc)return;
+    const mx=(e.clientX/window.innerWidth-0.5)*16;
+    const my=(e.clientY/window.innerHeight-0.5)*8;
+    hc.style.transform=`translate(${mx}px,${my}px)`;
+  });
+
+  startCanvas();
+
+})();
+</script>
+<script src="assets/footer.js"></script>
+<script>window.renderExpeditionFooter();</script>
+</body>
+</html>

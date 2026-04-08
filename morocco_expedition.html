@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE EXPEDITION GAME</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#050814;
+  --bg-2:#0a1124;
+  --panel:rgba(9,15,31,0.76);
+  --panel-strong:rgba(12,19,37,0.92);
+  --line:rgba(255,255,255,0.11);
+  --line-strong:rgba(255,255,255,0.2);
+  --text:#eef2f8;
+  --muted:#9ca8c0;
+  --gold:#c8a86a;
+  --gold-soft:#e0c48c;
+  --ice:#88bfe3;
+  --ember:#ce7a45;
+  --moss:#6fa973;
+  --danger:#d56363;
+  --shadow:0 24px 80px rgba(0,0,0,0.42);
+  --radius:22px;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  min-height:100vh;
+  font-family:'Inter',sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(200,168,106,0.14), transparent 30%),
+    radial-gradient(circle at 82% 22%, rgba(136,191,227,0.12), transparent 28%),
+    radial-gradient(circle at 50% 120%, rgba(9,49,94,0.35), transparent 50%),
+    linear-gradient(180deg, #04070f 0%, #060b16 34%, #091224 70%, #050814 100%);
+  overflow-x:hidden;
+}
+
+a{color:inherit;text-decoration:none}
+
+#starfield{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:0;
+  pointer-events:none;
+}
+
+.backdrop{
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  background:
+    linear-gradient(180deg, rgba(3,7,16,0.2), rgba(3,7,16,0.88)),
+    url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1800&q=80') center/cover no-repeat;
+  opacity:0.48;
+}
+
+.planet{
+  position:fixed;
+  right:-16vw;
+  top:-10vh;
+  width:min(62vw, 760px);
+  aspect-ratio:1;
+  border-radius:50%;
+  z-index:-1;
+  background:
+    radial-gradient(circle at 36% 38%, rgba(237,242,248,0.95), rgba(125,172,204,0.58) 18%, rgba(31,57,102,0.6) 38%, rgba(7,11,24,0.98) 72%),
+    radial-gradient(circle at 70% 28%, rgba(255,255,255,0.55), transparent 18%);
+  filter:blur(0.4px);
+  box-shadow:
+    0 0 120px rgba(94,134,194,0.24),
+    inset -90px -90px 180px rgba(0,0,0,0.56),
+    inset 80px 40px 120px rgba(255,255,255,0.05);
+  opacity:0.88;
+}
+
+.planet::after{
+  content:'';
+  position:absolute;
+  inset:8%;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,0.08);
+}
+
+.shell{
+  position:relative;
+  z-index:2;
+  width:min(1200px, calc(100% - 40px));
+  margin:0 auto;
+}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:24px 0 8px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.brand-mark{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 32% 32%, var(--gold-soft), var(--gold) 35%, rgba(12,19,37,0.95) 72%);
+  box-shadow:0 0 24px rgba(200,168,106,0.28);
+}
+
+.brand-copy small,
+.eyebrow,
+.meta,
+.section-kicker,
+.foot-label{
+  font-family:'Space Grotesk',sans-serif;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+}
+
+.brand-copy small{
+  display:block;
+  color:var(--gold);
+  font-size:0.68rem;
+}
+
+.brand-copy strong{
+  display:block;
+  font-size:0.95rem;
+  font-weight:600;
+}
+
+.topnav{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:10px;
+}
+
+.topnav a{
+  padding:10px 14px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  color:var(--muted);
+  background:rgba(255,255,255,0.03);
+  transition:0.25s ease;
+}
+
+.topnav a:hover{
+  color:var(--text);
+  border-color:rgba(200,168,106,0.42);
+  background:rgba(200,168,106,0.08);
+}
+
+.hero{
+  min-height:90vh;
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(300px,0.85fr);
+  align-items:end;
+  gap:32px;
+  padding:70px 0 48px;
+}
+
+.hero-copy{
+  max-width:690px;
+}
+
+.eyebrow{
+  color:var(--gold);
+  font-size:0.74rem;
+  margin-bottom:24px;
+}
+
+.hero h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(4rem,9vw,7.8rem);
+  line-height:0.88;
+  letter-spacing:-0.04em;
+  font-weight:700;
+  margin-bottom:20px;
+}
+
+.hero h1 span{
+  display:block;
+  color:var(--gold);
+}
+
+.hero-rule{
+  width:54px;
+  height:2px;
+  background:var(--gold);
+  margin:20px 0 24px;
+  border-radius:999px;
+}
+
+.hero p{
+  max-width:610px;
+  color:rgba(238,242,248,0.78);
+  font-size:1.05rem;
+  line-height:1.9;
+}
+
+.hero-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  margin-top:30px;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:50px;
+  padding:0 22px;
+  border-radius:999px;
+  border:1px solid transparent;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.84rem;
+  font-weight:600;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  transition:0.28s ease;
+}
+
+.btn-primary{
+  background:linear-gradient(135deg, var(--gold-soft), var(--gold));
+  color:#08101f;
+  box-shadow:0 16px 34px rgba(200,168,106,0.24);
+}
+
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 22px 44px rgba(200,168,106,0.32)}
+
+.btn-secondary{
+  border-color:var(--line);
+  background:rgba(255,255,255,0.03);
+  color:var(--text);
+}
+
+.btn-secondary:hover{
+  border-color:var(--line-strong);
+  background:rgba(255,255,255,0.06);
+}
+
+.meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px;
+  margin-top:34px;
+  color:var(--muted);
+  font-size:0.72rem;
+}
+
+.hero-panel{
+  align-self:center;
+  justify-self:end;
+  width:min(100%, 410px);
+  padding:28px;
+  border:1px solid var(--line);
+  border-radius:32px;
+  background:linear-gradient(180deg, rgba(8,14,29,0.66), rgba(8,14,29,0.9));
+  backdrop-filter:blur(16px);
+  box-shadow:var(--shadow);
+}
+
+.hero-panel .section-kicker{
+  color:var(--ice);
+  font-size:0.72rem;
+  margin-bottom:16px;
+}
+
+.hero-panel h2{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2.05rem;
+  line-height:1;
+  margin-bottom:14px;
+}
+
+.hero-panel p{
+  color:rgba(238,242,248,0.72);
+  line-height:1.75;
+  font-size:0.97rem;
+}
+
+.signal-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-top:24px;
+}
+
+.signal{
+  padding:14px 12px;
+  border-radius:18px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+}
+
+.signal strong{
+  display:block;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:1.1rem;
+  margin-bottom:4px;
+}
+
+.signal span{
+  color:var(--muted);
+  font-size:0.78rem;
+}
+
+.section{
+  padding:30px 0 16px;
+}
+
+.section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:18px;
+  margin-bottom:24px;
+}
+
+.section-kicker{
+  display:block;
+  color:var(--gold);
+  font-size:0.72rem;
+  margin-bottom:10px;
+}
+
+.section h2{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.2rem,4.3vw,3.4rem);
+  line-height:0.96;
+}
+
+.section-head p{
+  max-width:520px;
+  color:var(--muted);
+  line-height:1.8;
+}
+
+.expedition-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+}
+
+.expedition-card{
+  position:relative;
+  min-height:290px;
+  padding:22px;
+  border-radius:var(--radius);
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(7,11,24,0.94)),
+    rgba(8,14,29,0.86);
+  box-shadow:var(--shadow);
+  transition:transform 0.32s ease,border-color 0.32s ease,box-shadow 0.32s ease;
+}
+
+.expedition-card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:var(--bg-image) center/cover no-repeat;
+  opacity:0.34;
+  transform:scale(1.02);
+  transition:transform 0.5s ease,opacity 0.3s ease;
+}
+
+.expedition-card::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(180deg, rgba(4,7,15,0.06), rgba(4,7,15,0.5) 40%, rgba(4,7,15,0.96) 100%);
+}
+
+.expedition-card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(200,168,106,0.34);
+  box-shadow:0 30px 90px rgba(0,0,0,0.5);
+}
+
+.expedition-card:hover::before{
+  transform:scale(1.08);
+  opacity:0.42;
+}
+
+.card-inner{
+  position:relative;
+  z-index:2;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  height:100%;
+}
+
+.card-meta{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+
+.tag{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.08);
+  color:var(--muted);
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.68rem;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+}
+
+.tag .dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--tag-color, var(--gold));
+  box-shadow:0 0 14px var(--tag-color, var(--gold));
+}
+
+.card-index{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.8rem;
+  color:rgba(255,255,255,0.46);
+}
+
+.expedition-card h3{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2.15rem;
+  line-height:0.95;
+  margin:18px 0 10px;
+}
+
+.expedition-card p{
+  color:rgba(238,242,248,0.78);
+  line-height:1.75;
+  font-size:0.95rem;
+  max-width:30ch;
+}
+
+.card-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:24px;
+}
+
+.terrain{
+  color:var(--muted);
+  font-size:0.8rem;
+}
+
+.card-link{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.75rem;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--gold);
+}
+
+.manifest{
+  margin-top:26px;
+  display:grid;
+  grid-template-columns:1.1fr 0.9fr;
+  gap:18px;
+}
+
+.manifest-card{
+  padding:28px;
+  border-radius:28px;
+  border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(9,15,31,0.72), rgba(9,15,31,0.96));
+  box-shadow:var(--shadow);
+}
+
+.manifest-card h3{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2rem;
+  margin-bottom:12px;
+}
+
+.manifest-card p{
+  color:var(--muted);
+  line-height:1.82;
+}
+
+.manifest-list{
+  margin-top:18px;
+  display:grid;
+  gap:10px;
+}
+
+.manifest-list div{
+  padding:12px 14px;
+  border-radius:16px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+}
+
+.manifest-list strong{
+  display:block;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.82rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--text);
+  margin-bottom:4px;
+}
+
+.manifest-list span{
+  color:var(--muted);
+  font-size:0.92rem;
+}
+
+.site-footer{
+  margin:52px 0 34px;
+  padding:28px;
+  border-radius:28px;
+  border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(8,14,29,0.68), rgba(8,14,29,0.92));
+}
+
+.site-footer-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:22px;
+}
+
+.site-footer h3{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2rem;
+  margin-bottom:8px;
+}
+
+.site-footer p{
+  color:var(--muted);
+  max-width:560px;
+  line-height:1.8;
+}
+
+.footer-links{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+
+.footer-links a{
+  padding:14px 16px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.07);
+  background:rgba(255,255,255,0.03);
+  color:var(--muted);
+  transition:0.25s ease;
+}
+
+.footer-links a:hover{
+  color:var(--text);
+  border-color:rgba(200,168,106,0.35);
+  background:rgba(200,168,106,0.07);
+}
+
+@media (max-width: 1040px){
+  .hero{grid-template-columns:1fr;min-height:auto;padding-top:52px}
+  .hero-panel{justify-self:start}
+  .expedition-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .manifest{grid-template-columns:1fr}
+}
+
+@media (max-width: 700px){
+  .shell{width:min(100% - 24px, 1200px)}
+  .topbar,.section-head,.site-footer-top{display:block}
+  .topnav{justify-content:flex-start;margin-top:16px}
+  .hero{padding-top:34px}
+  .hero h1{font-size:clamp(3rem,16vw,5rem)}
+  .signal-grid,.footer-links,.expedition-grid{grid-template-columns:1fr}
+  .hero-panel,.manifest-card,.site-footer,.expedition-card{padding:22px}
+}
+</style>
+<link rel="stylesheet" href="assets/footer.css">
+</head>
+<body>
+<canvas id="starfield" aria-hidden="true"></canvas>
+<div class="backdrop" aria-hidden="true"></div>
+<div class="planet" aria-hidden="true"></div>
+
+<div class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div class="brand-copy">
+        <small>Field Briefing</small>
+        <strong>THE EXPEDITION GAME</strong>
+      </div>
+    </div>
+    <nav class="topnav" aria-label="Primary">
+      <a href="#expeditions">Expeditions</a>
+      <a href="#manifest">How It Works</a>
+      <a href="#footer-links">All Game Files</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Leadership Under Pressure</div>
+        <h1>THE <span>EXPEDITION GAME</span></h1>
+        <div class="hero-rule"></div>
+        <p>
+          Step into high-stakes environments where judgement, cohesion, and timing matter as much as endurance.
+          From frozen oceans to desert crossings and orbital frontiers, each expedition tests how a team thinks when the margin for error disappears.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#expeditions">Select An Expedition</a>
+          <a class="btn btn-secondary" href="#manifest">Read The Brief</a>
+        </div>
+        <div class="meta">
+          <span>6 Expedition Worlds</span>
+          <span>Scenario-Based Decisions</span>
+          <span>Cinematic Team Simulation</span>
+        </div>
+      </div>
+
+      <aside class="hero-panel">
+        <div class="section-kicker">Editorial Overview</div>
+        <h2>A National Geographic pulse. A high-pressure strategic game.</h2>
+        <p>
+          The landing page is the navigation hub for every expedition experience. Choose a destination here, then enter the dedicated game file built for that environment. The atmosphere is cosmic and observational, but the writing stays grounded, clear, and field-ready.
+        </p>
+        <div class="signal-grid">
+          <div class="signal">
+            <strong>Ice</strong>
+            <span>Polar drift and whiteout choices</span>
+          </div>
+          <div class="signal">
+            <strong>Sand</strong>
+            <span>Heat, pace, and route discipline</span>
+          </div>
+          <div class="signal">
+            <strong>Orbit</strong>
+            <span>Systems pressure and procedural risk</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section" id="expeditions">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Select Your Expedition</span>
+          <h2>Each route opens its own game world.</h2>
+        </div>
+        <p>
+          Every selection below opens a dedicated expedition HTML page. The landing page remains the single front door; each environment keeps its own tone, risks, and narrative frame once entered.
+        </p>
+      </div>
+
+      <div class="expedition-grid">
+        <a class="expedition-card" href="morocco_expedition_game.html" style="--bg-image:url('https://images.unsplash.com/photo-1539635278303-d4002c07eae3?auto=format&fit=crop&w=1200&q=80')">
+          <div class="card-inner">
+            <div>
+              <div class="card-meta">
+                <span class="tag" style="--tag-color:#c8a86a"><span class="dot"></span>Atlas Rising</span>
+                <span class="card-index">01</span>
+              </div>
+              <h3>Morocco</h3>
+              <p>High altitude, rapid weather shifts, and thin-margin leadership on the route to Toubkal.</p>
+            </div>
+            <div class="card-footer">
+              <span class="terrain">Mountain expedition</span>
+              <span class="card-link">Open Game</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="expedition-card" href="antarctic_game.html" style="--bg-image:url('https://images.unsplash.com/photo-1517783999520-f068d7431a60?auto=format&fit=crop&w=1200&q=80')">
+          <div class="card-inner">
+            <div>
+              <div class="card-meta">
+                <span class="tag" style="--tag-color:#88bfe3"><span class="dot"></span>White Silence</span>
+                <span class="card-index">02</span>
+              </div>
+              <h3>Antarctic</h3>
+              <p>Isolation, exposure, and precision planning at the edge of the most severe continent on Earth.</p>
+            </div>
+            <div class="card-footer">
+              <span class="terrain">Ice shelf crossing</span>
+              <span class="card-link">Open Game</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="expedition-card" href="desert_game.html" style="--bg-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80')">
+          <div class="card-inner">
+            <div>
+              <div class="card-meta">
+                <span class="tag" style="--tag-color:#ce7a45"><span class="dot"></span>Burn Line</span>
+                <span class="card-index">03</span>
+              </div>
+              <h3>Desert</h3>
+              <p>Heat discipline, dwindling water, and strategic timing across a brutal open landscape.</p>
+            </div>
+            <div class="card-footer">
+              <span class="terrain">Arid expedition</span>
+              <span class="card-link">Open Game</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="expedition-card" href="jungle_game.html" style="--bg-image:url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80')">
+          <div class="card-inner">
+            <div>
+              <div class="card-meta">
+                <span class="tag" style="--tag-color:#6fa973"><span class="dot"></span>Green Threshold</span>
+                <span class="card-index">04</span>
+              </div>
+              <h3>Jungle</h3>
+              <p>Dense terrain, hidden hazards, and fragmented visibility where patience beats force.</p>
+            </div>
+            <div class="card-footer">
+              <span class="terrain">Rainforest expedition</span>
+              <span class="card-link">Open Game</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="expedition-card" href="north_polar_game.html" style="--bg-image:url('https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1200&q=80')">
+          <div class="card-inner">
+            <div>
+              <div class="card-meta">
+                <span class="tag" style="--tag-color:#a6d4ef"><span class="dot"></span>North Horizon</span>
+                <span class="card-index">05</span>
+              </div>
+              <h3>North Polar</h3>
+              <p>Pressure ridges, cold management, and disciplined teamwork under constant environmental drag.</p>
+            </div>
+            <div class="card-footer">
+              <span class="terrain">Arctic traverse</span>
+              <span class="card-link">Open Game</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="expedition-card" href="space_game.html" style="--bg-image:url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1200&q=80')">
+          <div class="card-inner">
+            <div>
+              <div class="card-meta">
+                <span class="tag" style="--tag-color:#b2a8ff"><span class="dot"></span>Lunar Threshold</span>
+                <span class="card-index">06</span>
+              </div>
+              <h3>Space</h3>
+              <p>Mission logic, systems stress, and the consequences of small errors when there is nowhere to hide.</p>
+            </div>
+            <div class="card-footer">
+              <span class="terrain">Orbital expedition</span>
+              <span class="card-link">Open Game</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="section" id="manifest">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">The Brief</span>
+          <h2>The home page is now the command deck.</h2>
+        </div>
+        <p>
+          This page is intentionally separate from expedition mechanics. It introduces the world, sets the tone, and routes players into the correct HTML experience for the expedition they choose.
+        </p>
+      </div>
+
+      <div class="manifest">
+        <article class="manifest-card">
+          <h3>What this page now does</h3>
+          <p>
+            It provides a single, visually distinctive starting point for the whole series. The voice is more editorial and cinematic, the navigation is clear, and the moving constellation field gives the landing page a distinct identity from the in-game screens.
+          </p>
+          <div class="manifest-list">
+            <div>
+              <strong>Single front door</strong>
+              <span>All expedition versions are selected here first.</span>
+            </div>
+            <div>
+              <strong>Dedicated links</strong>
+              <span>Each card opens its own expedition HTML file directly.</span>
+            </div>
+            <div>
+              <strong>Brand continuity</strong>
+              <span>Shared typography and dark-glass treatment keep it aligned with the existing expedition style.</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="manifest-card">
+          <h3>Visual direction</h3>
+          <p>
+            The page blends a premium expedition editorial feel with a cosmic field-screen aesthetic: gold accents, atmospheric imagery, restrained glass surfaces, and a responsive star map that subtly reacts to movement.
+          </p>
+          <div class="manifest-list">
+            <div>
+              <strong>National Geographic influence</strong>
+              <span>Serif headlines, documentary tone, and terrain-led imagery.</span>
+            </div>
+            <div>
+              <strong>Current brand style</strong>
+              <span>Dark void background, luminous interface details, and expedition naming language.</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="footer-links">
+    <p>Developed by Dr Jonathan Rhodes<br>University of Plymouth, Plymouth Expedition and Discovery Research Unit</p>
+  </footer>
+</div>
+
+<script>
+const canvas=document.getElementById('starfield');
+const ctx=canvas.getContext('2d');
+let w=0,h=0,dpr=Math.min(window.devicePixelRatio||1,2);
+let stars=[];
+let pointer={x:null,y:null,active:false};
+
+function resize(){
+  w=window.innerWidth;
+  h=window.innerHeight;
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=w*dpr;
+  canvas.height=h*dpr;
+  canvas.style.width=w+'px';
+  canvas.style.height=h+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const count=Math.max(90,Math.min(180,Math.floor((w*h)/11000)));
+  stars=Array.from({length:count},()=>spawnStar(true));
+}
+
+function spawnStar(initial=false){
+  return{
+    x:Math.random()*w,
+    y:Math.random()*h,
+    r:Math.random()*1.7+0.4,
+    vx:(Math.random()-0.5)*0.18,
+    vy:(Math.random()-0.5)*0.18,
+    twinkle:Math.random()*Math.PI*2,
+    hue:Math.random()>0.84?'gold':'ice',
+    a:initial?Math.random()*0.7+0.15:0
+  };
+}
+
+function updateStar(s){
+  s.x+=s.vx;
+  s.y+=s.vy;
+  s.twinkle+=0.012;
+  s.a=Math.min(0.95,s.a+0.004);
+  if(s.x<-40) s.x=w+40;
+  if(s.x>w+40) s.x=-40;
+  if(s.y<-40) s.y=h+40;
+  if(s.y>h+40) s.y=-40;
+}
+
+function drawStars(){
+  ctx.clearRect(0,0,w,h);
+  for(const s of stars){
+    updateStar(s);
+    const pulse=(Math.sin(s.twinkle)+1)/2;
+    const alpha=s.a*(0.35+pulse*0.55);
+    ctx.beginPath();
+    ctx.fillStyle=s.hue==='gold'
+      ?`rgba(224,196,140,${alpha})`
+      :`rgba(176,212,236,${alpha})`;
+    ctx.arc(s.x,s.y,s.r+(pulse*0.4),0,Math.PI*2);
+    ctx.fill();
+  }
+}
+
+function drawConnections(){
+  const reach=pointer.active?150:110;
+  for(let i=0;i<stars.length;i++){
+    const a=stars[i];
+    for(let j=i+1;j<stars.length;j++){
+      const b=stars[j];
+      const dx=a.x-b.x;
+      const dy=a.y-b.y;
+      const dist=Math.hypot(dx,dy);
+      if(dist>reach) continue;
+      let alpha=(1-dist/reach)*0.16;
+      if(pointer.active){
+        const da=Math.hypot((pointer.x??0)-a.x,(pointer.y??0)-a.y);
+        const db=Math.hypot((pointer.x??0)-b.x,(pointer.y??0)-b.y);
+        if(da<130||db<130) alpha+=0.12*(1-Math.min(da,db)/130);
+      }
+      ctx.beginPath();
+      ctx.strokeStyle=`rgba(182,205,232,${Math.max(alpha,0)})`;
+      ctx.lineWidth=1;
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(b.x,b.y);
+      ctx.stroke();
+    }
+  }
+}
+
+function drawPointerAura(){
+  if(!pointer.active||pointer.x===null||pointer.y===null) return;
+  const g=ctx.createRadialGradient(pointer.x,pointer.y,0,pointer.x,pointer.y,180);
+  g.addColorStop(0,'rgba(200,168,106,0.14)');
+  g.addColorStop(0.45,'rgba(120,163,216,0.08)');
+  g.addColorStop(1,'rgba(5,8,20,0)');
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.arc(pointer.x,pointer.y,180,0,Math.PI*2);
+  ctx.fill();
+}
+
+function frame(){
+  drawStars();
+  drawPointerAura();
+  drawConnections();
+  requestAnimationFrame(frame);
+}
+
+window.addEventListener('resize',resize);
+window.addEventListener('mousemove',e=>{
+  pointer.x=e.clientX;
+  pointer.y=e.clientY;
+  pointer.active=true;
+});
+window.addEventListener('mouseleave',()=>{
+  pointer.active=false;
+});
+window.addEventListener('touchmove',e=>{
+  const t=e.touches[0];
+  if(!t) return;
+  pointer.x=t.clientX;
+  pointer.y=t.clientY;
+  pointer.active=true;
+},{passive:true});
+window.addEventListener('touchend',()=>{pointer.active=false;});
+
+resize();
+frame();
+</script>
+<script src="assets/footer.js"></script>
+<script>window.renderExpeditionFooter();</script>
+</body>
+</html>

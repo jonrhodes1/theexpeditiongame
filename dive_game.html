@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abyss Protocol - The Expedition Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --void:#060910;
+  --deep:#0b1020;
+  --surface:rgba(10,15,30,0.94);
+  --surface2:rgba(16,24,46,0.88);
+  --glass:rgba(255,255,255,0.032);
+  --border:rgba(255,255,255,0.07);
+  --border-hi:rgba(255,255,255,0.14);
+  --text:#edf0f8;
+  --muted:#6070a0;
+  --accent:#38c4d4;
+  --accent-hi:#5cd8e8;
+  --blue:#38c4d4;
+  --blue-hi:#5cd8e8;
+  --danger:#dc4f4f;
+  --success:#3dba7a;
+  --warning:#d4873a;
+  --safety:#dc4f4f;
+  --time:#2a9baa;
+  --focus:#88dde8;
+  --r:12px;
+  --r-lg:20px;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--void);
+  color:var(--text);
+  font-family:'Inter',system-ui,sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+  font-size:15px;
+  line-height:1.65;
+}
+
+.screen{display:none}
+.screen.active{display:block;animation:screenIn 0.55s cubic-bezier(0.16,1,0.3,1) both}
+#screen-landing.active{display:flex !important;animation:landingIn 1s ease both}
+
+@keyframes screenIn{
+  from{opacity:0;transform:translateY(18px) scale(0.99)}
+  to{opacity:1;transform:none}
+}
+@keyframes landingIn{from{opacity:0}to{opacity:1}}
+
+#universe-canvas{
+  position:fixed;top:0;left:0;
+  width:100%;height:100%;
+  z-index:1;
+  pointer-events:none;
+}
+
+#screen-landing{
+  position:fixed;inset:0;
+  z-index:40;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:var(--void);
+}
+
+.shell{
+  position:relative;
+  z-index:20;
+  background:var(--void);
+  width:100%;
+  max-width:860px;
+  margin:0 auto;
+  padding:0 18px 80px;
+  min-height:100vh;
+}
+
+.hero-bg{
+  position:absolute;inset:0;
+  background-image:url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1920&q=80');
+  background-size:cover;
+  background-position:center 40%;
+  opacity:0.14;
+  z-index:0;
+}
+.hero-bg::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,
+    rgba(6,9,16,0.2) 0%,
+    rgba(6,9,16,0.05) 35%,
+    rgba(6,9,16,0.5) 75%,
+    rgba(6,9,16,1) 100%);
+}
+
+.hero-content{
+  position:relative;z-index:4;
+  text-align:center;
+  max-width:680px;
+  padding:0 28px;
+}
+
+.hero-eyebrow{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.68rem;font-weight:500;
+  letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:24px;
+  opacity:0.85;
+}
+
+.hero-title{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(4rem,11vw,9rem);
+  font-weight:700;
+  line-height:0.9;
+  letter-spacing:-0.025em;
+  color:var(--text);
+  margin-bottom:10px;
+}
+.hero-title .gold{color:var(--accent)}
+
+.hero-rule{
+  width:36px;height:2px;
+  background:var(--accent);
+  margin:22px auto;
+  border-radius:1px;
+}
+
+.hero-sub{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.72rem;
+  letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:36px;
+}
+
+.hero-desc{
+  font-size:1.02rem;
+  line-height:1.88;
+  color:rgba(237,240,248,0.68);
+  max-width:500px;
+  margin:0 auto 30px;
+}
+
+.hero-meta{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.72rem;
+  letter-spacing:0.12em;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:38px;
+}
+.hero-meta span{margin:0 12px}
+
+.btn-hero{
+  display:inline-block;
+  background:var(--accent);
+  color:#07090f;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;
+  font-size:0.8rem;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  padding:15px 44px;
+  border:none;
+  border-radius:2px;
+  cursor:pointer;
+  transition:all 0.35s cubic-bezier(0.16,1,0.3,1);
+  position:relative;overflow:hidden;
+}
+.btn-hero::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,255,255,0.12);
+  opacity:0;transition:opacity 0.2s;
+}
+.btn-hero:hover::after{opacity:1}
+.btn-hero:hover{transform:translateY(-3px);box-shadow:0 14px 44px rgba(56,196,212,0.28)}
+
+.hero-footer{
+  position:absolute;bottom:0;left:0;right:0;
+  z-index:2;
+  padding:32px 28px 28px;
+  background:linear-gradient(to top,rgba(6,9,16,1) 0%,rgba(6,9,16,0.85) 55%,transparent 100%);
+}
+.series-label{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:14px;text-align:center;
+}
+.series-chips{
+  display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+}
+.chip{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.68rem;font-weight:500;
+  letter-spacing:0.07em;
+  padding:6px 15px;
+  background:transparent;
+  border-radius:2px;
+  border:1px solid var(--border);
+  color:var(--muted);
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.chip.on{
+  border-color:rgba(56,196,212,0.45);
+  color:var(--accent);
+  background:rgba(56,196,212,0.07);
+}
+.chip.off{opacity:0.3}
+
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:32px 36px;
+  margin-bottom:20px;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.card h1{font-size:1.75rem;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:-0.015em}
+.card h2{font-size:1.3rem;font-weight:600;margin-bottom:14px;letter-spacing:-0.01em}
+.card h3{font-size:0.96rem;font-weight:600;color:var(--accent);margin-bottom:12px;letter-spacing:0.01em}
+.card p{color:rgba(237,240,248,0.74);margin-bottom:14px;line-height:1.82}
+.card p:last-child{margin-bottom:0}
+
+.card.photo-card{padding:0;overflow:hidden}
+.card-photo{
+  width:100%;height:220px;
+  object-fit:cover;
+  display:block;
+  opacity:0.65;
+  transition:opacity 0.3s;
+}
+.card-photo:hover{opacity:0.72}
+.photo-body{padding:28px 36px 32px}
+
+.game-header{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  gap:14px;flex-wrap:wrap;
+  padding:16px 24px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  margin-bottom:18px;
+  backdrop-filter:blur(14px);
+}
+.logo{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:1.02rem;font-weight:700;
+  color:var(--accent);letter-spacing:0.04em;
+}
+.subtitle{font-size:0.72rem;color:var(--muted);margin-top:2px;letter-spacing:0.03em}
+.hdr-right{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.78rem;color:var(--muted);text-align:right;
+}
+
+.resources{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:12px;margin-bottom:18px;
+}
+.res-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px 18px;
+  backdrop-filter:blur(8px);
+}
+.res-label{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.68rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.1em;
+  margin-bottom:8px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.res-label span{
+  font-weight:700;font-size:1.32rem;
+  color:var(--text);letter-spacing:-0.015em;
+}
+.res-track{
+  height:3px;background:rgba(255,255,255,0.06);
+  border-radius:2px;overflow:hidden;
+}
+.res-fill{
+  height:100%;border-radius:2px;
+  transition:width 0.65s cubic-bezier(0.4,0,0.2,1);
+}
+.res-fill.safety{background:var(--safety)}
+.res-fill.time{background:var(--time)}
+.res-fill.focus{background:var(--focus)}
+
+@keyframes dangerBlink{
+  0%,100%{color:var(--danger);text-shadow:0 0 12px rgba(220,79,79,0.6)}
+  50%{color:#ff8888;text-shadow:0 0 22px rgba(220,79,79,0.9)}
+}
+.res-danger{border-color:rgba(220,79,79,0.35) !important}
+.res-danger .res-label span{animation:dangerBlink 0.9s ease-in-out infinite}
+
+.caller-banner{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 18px;margin-bottom:18px;
+  background:rgba(56,196,212,0.07);
+  border:1px solid rgba(56,196,212,0.22);
+  border-radius:var(--r);
+}
+.caller-label{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.68rem;text-transform:uppercase;
+  letter-spacing:0.1em;color:var(--muted);
+  flex-shrink:0;
+}
+.caller-name{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.94rem;font-weight:700;
+  color:var(--accent);
+}
+
+.scenario-body{
+  font-size:1rem;line-height:1.92;
+  color:rgba(237,240,248,0.8);
+  margin-bottom:26px;
+  padding:24px 28px;
+  background:rgba(255,255,255,0.022);
+  border-left:2px solid var(--accent);
+  border-radius:0 var(--r) var(--r) 0;
+  white-space:pre-line;
+}
+
+.tag{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.66rem;padding:4px 12px;
+  border-radius:2px;font-weight:600;
+  letter-spacing:0.09em;text-transform:uppercase;
+}
+.tag-day{background:rgba(56,196,212,0.1);color:var(--accent);border:1px solid rgba(56,196,212,0.2)}
+.tag-crisis{background:rgba(220,79,79,0.1);color:var(--danger);border:1px solid rgba(220,79,79,0.22)}
+.tag-summit{background:rgba(56,196,212,0.1);color:var(--accent);border:1px solid rgba(56,196,212,0.22)}
+.tag-normal{background:rgba(255,255,255,0.045);color:var(--muted);border:1px solid var(--border)}
+
+.timer-wrap{
+  display:flex;align-items:center;gap:16px;
+  margin-bottom:24px;padding:16px 20px;
+  background:rgba(220,79,79,0.055);
+  border:1px solid rgba(220,79,79,0.18);
+  border-radius:var(--r);
+}
+.timer-svg{position:relative;width:52px;height:52px;flex-shrink:0}
+.timer-svg svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:rgba(255,255,255,0.07);stroke-width:4}
+.ring-fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 0.9s linear,stroke 0.5s}
+.ring-num{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;font-size:1.06rem;
+}
+.timer-label{font-size:0.8rem;color:var(--muted)}
+.timer-label strong{
+  display:block;color:var(--text);margin-bottom:2px;
+  font-family:'Space Grotesk',sans-serif;font-weight:600;
+}
+
+.options{display:grid;gap:10px;margin-bottom:26px}
+.option-btn{
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:17px 22px;
+  cursor:pointer;text-align:left;
+  color:var(--text);
+  transition:all 0.22s cubic-bezier(0.4,0,0.2,1);
+  font-size:0.91rem;line-height:1.66;
+  width:100%;font-family:'Inter',sans-serif;
+}
+.option-btn:hover:not(:disabled){
+  border-color:rgba(56,196,212,0.38);
+  background:rgba(56,196,212,0.04);
+  transform:translateX(4px);
+}
+.option-btn.selected{
+  border-color:var(--accent);
+  background:rgba(56,196,212,0.055);
+}
+.option-btn:disabled{opacity:0.42;cursor:default;transform:none}
+.option-letter{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:21px;height:21px;border-radius:50%;
+  background:var(--accent);color:#07090f;
+  font-size:0.65rem;font-weight:800;
+  margin-right:12px;
+  font-family:'Space Grotesk',sans-serif;
+  flex-shrink:0;vertical-align:middle;
+}
+
+.outcome-banner{
+  border-radius:var(--r);
+  padding:20px 24px;margin-bottom:20px;
+  font-size:0.91rem;line-height:1.78;
+}
+.outcome-banner.good{background:rgba(61,186,122,0.07);border:1px solid rgba(61,186,122,0.2)}
+.outcome-banner.ok{background:rgba(212,135,58,0.07);border:1px solid rgba(212,135,58,0.2)}
+.outcome-banner.bad{background:rgba(220,79,79,0.07);border:1px solid rgba(220,79,79,0.2)}
+.outcome-banner .pts{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;margin-top:10px;
+  font-size:0.8rem;color:var(--muted);
+}
+
+.btn{
+  font-family:'Space Grotesk',sans-serif;
+  padding:12px 26px;border:none;
+  border-radius:var(--r);
+  font-size:0.82rem;font-weight:600;
+  cursor:pointer;
+  transition:all 0.24s cubic-bezier(0.4,0,0.2,1);
+  letter-spacing:0.05em;text-transform:uppercase;
+}
+.btn-primary{background:var(--accent);color:#08090f}
+.btn-primary:hover{background:var(--accent-hi);transform:translateY(-2px);box-shadow:0 10px 32px rgba(56,196,212,0.22)}
+.btn-secondary{background:var(--glass);color:var(--text);border:1px solid var(--border-hi)}
+.btn-secondary:hover{background:rgba(255,255,255,0.065)}
+.btn-danger{background:var(--danger);color:white}
+.btn:disabled{opacity:0.32;cursor:default;transform:none !important;box-shadow:none !important}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+
+.scoreboard{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:20px 24px;margin-bottom:18px;
+}
+.scoreboard h3{
+  color:var(--muted);font-size:0.65rem;
+  text-transform:uppercase;letter-spacing:0.15em;
+  margin-bottom:14px;
+}
+.score-row{
+  display:flex;justify-content:space-between;
+  align-items:center;padding:8px 0;
+  border-bottom:1px solid var(--border);font-size:0.87rem;
+}
+.score-row:last-child{border-bottom:none}
+.score-row.active-team{color:var(--accent);font-weight:700}
+
+.decision-log{margin:18px 0}
+.log-item{
+  display:flex;gap:16px;padding:10px 0;
+  border-bottom:1px solid var(--border);font-size:0.81rem;
+}
+.log-day{color:var(--accent);font-weight:700;min-width:52px;font-family:'Space Grotesk',sans-serif}
+.log-text{color:rgba(237,240,248,0.6);flex:1}
+.log-impact{font-weight:600;min-width:52px;text-align:right;font-family:'Space Grotesk',sans-serif}
+.log-impact.good{color:var(--success)}.log-impact.bad{color:var(--danger)}.log-impact.ok{color:var(--warning)}
+
+.debrief-photo-wrap{
+  width:100%;height:260px;
+  position:relative;overflow:hidden;
+  border-radius:var(--r-lg) var(--r-lg) 0 0;
+  margin-bottom:0;
+}
+.debrief-photo{
+  width:100%;height:100%;
+  object-fit:cover;object-position:center 40%;
+  opacity:0.55;
+  display:block;
+}
+.debrief-photo-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(6,9,16,0.3) 0%,rgba(6,9,16,0.85) 100%);
+}
+
+.debrief-header{
+  text-align:center;
+  padding:52px 20px 40px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-top:none;
+  border-radius:0 0 var(--r-lg) var(--r-lg);
+  margin-bottom:20px;
+  backdrop-filter:blur(14px);
+}
+.result-icon{display:none}
+.debrief-rule{width:32px;height:2px;background:var(--accent);margin:0 auto 20px;border-radius:1px}
+.debrief-header h1{
+  font-size:clamp(1.6rem,4vw,2.4rem);
+  font-weight:700;margin-bottom:10px;
+  letter-spacing:-0.02em;
+}
+.debrief-header p{color:var(--muted);font-size:0.95rem}
+
+.final-scores{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:12px;margin:0 0 20px;
+}
+.final-score-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:26px 20px;text-align:center;
+  backdrop-filter:blur(14px);
+}
+.final-score-card .label{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.65rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.13em;margin-bottom:12px;
+}
+.final-score-card .val{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:2.6rem;font-weight:700;letter-spacing:-0.025em;
+}
+.val.safety{color:var(--safety)}.val.time{color:var(--time)}.val.focus{color:var(--focus)}
+.score-denom{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.68rem;color:var(--muted);margin-top:6px;
+}
+
+.narrative-intro{
+  font-size:1rem;line-height:1.9;
+  color:rgba(237,240,248,0.76);
+  padding:24px 0;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  margin:20px 0;
+}
+
+.archetype-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(198px,1fr));
+  gap:10px;margin:20px 0;
+}
+.arch-card{
+  background:var(--glass);border:1px solid var(--border);
+  border-radius:var(--r);padding:18px 16px;
+  cursor:pointer;
+  transition:all 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+.arch-card:hover{border-color:rgba(56,196,212,0.38);transform:translateY(-2px);background:rgba(56,196,212,0.04)}
+.arch-card.selected{border-color:var(--accent);background:rgba(56,196,212,0.07)}
+.arch-card.taken{opacity:0.28;pointer-events:none}
+.arch-name{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;color:var(--accent);
+  margin-bottom:6px;font-size:0.9rem;
+}
+.arch-tagline{font-size:0.74rem;color:var(--muted);line-height:1.55}
+
+.team-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--glass);border:1px solid var(--border);
+  border-radius:3px;padding:5px 12px;
+  font-size:0.77rem;margin:3px;
+}
+.team-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+
+.cascade-note{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.78rem;color:var(--warning);
+  padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px;
+}
+
+input[type=text],input[type=number]{
+  background:rgba(255,255,255,0.038);
+  border:1px solid var(--border-hi);
+  border-radius:8px;padding:11px 16px;
+  color:var(--text);font-size:0.91rem;
+  width:100%;outline:none;
+  transition:border-color 0.2s;
+  font-family:'Inter',sans-serif;
+}
+input[type=text]:focus,input[type=number]:focus{border-color:var(--accent)}
+label{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.72rem;color:var(--muted);
+  display:block;margin-bottom:6px;margin-top:16px;
+  text-transform:uppercase;letter-spacing:0.09em;
+}
+
+.setup-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.highlight{color:var(--accent);font-weight:600}
+.muted{color:var(--muted)}
+.text-center{text-align:center}
+.mt-16{margin-top:16px}.mt-24{margin-top:24px}
+
+@keyframes summitPulse{
+  0%{text-shadow:0 0 0 rgba(56,196,212,0)}
+  50%{text-shadow:0 0 60px rgba(56,196,212,0.3),0 0 120px rgba(56,196,212,0.12)}
+  100%{text-shadow:0 0 0 rgba(56,196,212,0)}
+}
+.summit-win h1{
+  color:var(--accent);
+  animation:summitPulse 2.5s ease-in-out 0.4s infinite;
+}
+
+.confetti-dot{
+  position:fixed;pointer-events:none;z-index:100;
+  width:6px;height:6px;border-radius:50%;
+  animation:confettiFall linear forwards;
+}
+@keyframes confettiFall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+  100%{transform:translateY(105vh) rotate(720deg);opacity:0}
+}
+
+@media(max-width:600px){
+  .card{padding:22px 18px}
+  .photo-body{padding:22px 18px 28px}
+  .final-scores{grid-template-columns:1fr}
+  .setup-row{grid-template-columns:1fr}
+  .hero-title{font-size:clamp(3.2rem,16vw,5rem)}
+  .resources{grid-template-columns:1fr;gap:8px}
+}
+
+.fixed-nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:none;gap:8px;z-index:200;align-items:center}
+.fn-btn{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.62rem;font-weight:500;
+  letter-spacing:0.08em;text-transform:uppercase;
+  padding:7px 18px;border-radius:3px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(6,9,16,0.82);
+  color:rgba(237,240,248,0.5);
+  cursor:pointer;
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  transition:all 0.2s;
+  white-space:nowrap;
+}
+.fn-btn:hover{color:var(--accent);border-color:rgba(56,196,212,0.3);background:rgba(6,9,16,0.92)}
+.fn-stop{border-color:rgba(220,79,79,0.15)}
+.fn-stop:hover{color:var(--danger) !important;border-color:rgba(220,79,79,0.38) !important}
+</style>
+<link rel="stylesheet" href="assets/footer.css">
+</head>
+<body>
+
+<canvas id="universe-canvas"></canvas>
+
+<div class="fixed-nav" id="fixed-nav">
+  <button class="fn-btn" id="fn-home" onclick="window.location.href='index.html'">&#8592; Home</button>
+  <button class="fn-btn fn-stop" id="fn-stop" style="display:none" onclick="confirmStopExpedition()">Stop Expedition</button>
+</div>
+
+<div id="screen-landing" class="screen active">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">The Expedition Game</div>
+    <h1 class="hero-title">ABYSS<br><span class="gold">PROTOCOL</span></h1>
+    <div class="hero-rule"></div>
+    <div class="hero-sub">Sistema Sac Actun &nbsp;&middot;&nbsp; Yucatan Peninsula &nbsp;&middot;&nbsp; Mexico</div>
+    <p class="hero-desc">The longest underwater cave system ever mapped. 370 kilometres of flooded passages, air pockets, and unexplored sections 30 metres below the Yucatan jungle. Cave diving is the most technically demanding sport on Earth. In Sac Actun, there is no surface to swim to. Every decision is final.</p>
+    <button class="btn-hero" onclick="goTo('screen-setup')">Begin Expedition</button>
+  </div>
+</div>
+
+<div class="shell">
+
+<div id="screen-series-coming" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="card text-center">
+    <h2 id="series-coming-title">Expedition</h2>
+    <p id="series-coming-sub" style="font-size:1.04rem">Coming soon.</p>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn btn-secondary" onclick="goTo('screen-landing')">Back to Series</button>
+      <button class="btn btn-primary" onclick="goTo('screen-setup')">Play Abyss Protocol</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-setup" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="card">
+    <h2>Team Setup</h2>
+    <p class="muted">Enter how many players are joining, then name each player. Each will choose their archetype in turn.</p>
+    <div class="setup-row">
+      <div><label for="team-name-input">Team Name</label><input type="text" id="team-name-input" placeholder="e.g. Team Sac Actun" maxlength="30"></div>
+      <div><label for="player-count-input">Players (1&ndash;9)</label><input type="number" id="player-count-input" min="1" max="9" value="6" oninput="renderPlayerFields()"></div>
+    </div>
+    <div id="player-name-fields" class="mt-16"></div>
+    <div class="btn-row mt-24">
+      <button class="btn btn-secondary" onclick="goTo('screen-landing')">Back</button>
+      <button class="btn btn-primary" onclick="startAssessments()">Archetype Assessment</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-archetype" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="card">
+    <h2 id="arch-heading">Player 1 - choose your archetype</h2>
+    <p class="muted" style="margin-bottom:4px">Read the scenario, then pick the response that feels most natural to you under pressure.</p>
+    <div class="narrative-intro" id="arch-scenario"></div>
+    <div class="archetype-grid" id="arch-grid"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="arch-confirm" onclick="confirmArch()" disabled>Confirm</button></div>
+  </div>
+</div>
+
+<div id="screen-intro" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="card photo-card">
+    <img class="card-photo"
+      src="https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=1400&q=75"
+      alt="Underwater cave cenote diving"
+      onerror="this.style.display='none'">
+    <div class="photo-body">
+      <h1>Project Sac Actun</h1>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:22px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.12em;text-transform:uppercase">February 2024 &nbsp;&middot;&nbsp; Sistema Sac Actun, Quintana Roo &nbsp;&middot;&nbsp; Mexico</div>
+      <div class="narrative-intro">
+        <p>The year is 2024. Your team of six technical divers has assembled at Tulum in the Yucatan Peninsula. Your mission: 30 days of cave diving exploration in the previously unmapped northwestern extension of the <span class="highlight">Sistema Sac Actun</span> - the longest underwater cave system in the world. The system runs beneath 370km of Yucatan jungle, with passages at depths of 4 to 38 metres, and air pockets that have trapped explorers for days.</p>
+        <p style="margin-top:16px">Cave diving has killed more experienced technical divers than any other diving discipline. The three primary causes of death are identical across every fatality record: running out of gas, losing the guideline, and diver panic. Your team follows the <span class="highlight">rule of thirds</span> - one third of gas for the outbound dive, one third for the return, one third as reserve. No exceptions. No optimism.</p>
+        <p style="margin-top:16px"><span class="highlight">Dr. Reyes</span>, your team's cave diving safety specialist, has mapped 12km of Sistema Sac Actun over 8 years. She knows the known passages cold. The unexplored northwestern extension is genuinely unknown - passages no light has ever touched, air pockets with unmeasured atmospheric content, silt floors that can eliminate visibility in seconds.</p>
+        <p style="margin-top:16px;font-size:0.86rem;color:var(--muted)">14 scenarios across 30 days. Several carry timers. Gas and guideline decisions cascade through every subsequent dive. Only teams with exceptional technical discipline and zero-ego decision-making will complete the project and surface safely.</p>
+      </div>
+      <div id="team-summary" class="mt-16"></div>
+      <div class="btn-row mt-24">
+        <button class="btn btn-primary" onclick="startGame()">Begin Project</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-game" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="game-header">
+    <div>
+      <div class="logo" id="hdr-name">Team Sac Actun</div>
+      <div class="subtitle">Project Sac Actun &nbsp;&middot;&nbsp; Sistema Sac Actun, Quintana Roo</div>
+    </div>
+    <div class="hdr-right">Day <span id="hdr-day">1</span> of 30 &nbsp;&middot;&nbsp; Scenario <span id="hdr-sc">1</span> of 14</div>
+  </div>
+  <div class="resources">
+    <div class="res-card" id="res-card-safety">
+      <div class="res-label">Safety <span id="rv-safety">20</span></div>
+      <div class="res-track"><div class="res-fill safety" id="rb-safety" style="width:100%"></div></div>
+    </div>
+    <div class="res-card" id="res-card-time">
+      <div class="res-label">Gas <span id="rv-time">15</span></div>
+      <div class="res-track"><div class="res-fill time" id="rb-time" style="width:100%"></div></div>
+    </div>
+    <div class="res-card" id="res-card-focus">
+      <div class="res-label">Cohesion <span id="rv-focus">15</span></div>
+      <div class="res-track"><div class="res-fill focus" id="rb-focus" style="width:100%"></div></div>
+    </div>
+  </div>
+  <div id="scoreboard" class="scoreboard" style="display:none">
+    <h3>Previous Top Scorers</h3>
+    <div id="score-rows"></div>
+  </div>
+  <div id="caller-banner" class="caller-banner" style="display:none">
+    <span class="caller-label">This round's caller</span>
+    <span class="caller-name" id="caller-name-display"></span>
+    <span style="font-size:0.78rem;color:var(--muted);margin-left:auto">Read the scenario aloud and name the decision.</span>
+  </div>
+  <div class="card">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
+      <span class="tag tag-day" id="sc-day-tag">Day 1</span>
+      <span class="tag" id="sc-type-tag">Decision</span>
+    </div>
+    <h2 id="sc-title">Loading...</h2>
+    <div id="timer-wrap" style="display:none" class="timer-wrap">
+      <div class="timer-svg">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle class="ring-bg" cx="26" cy="26" r="22"/>
+          <circle class="ring-fg" id="timer-ring" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="0" stroke="var(--danger)"/>
+        </svg>
+        <div class="ring-num" id="timer-num">60</div>
+      </div>
+      <div class="timer-label"><strong>Time Pressure Active</strong>Indecision costs the team - decide before the clock runs out.</div>
+    </div>
+    <div class="scenario-body" id="sc-body"></div>
+    <div class="options" id="sc-options"></div>
+    <div id="outcome-area" style="display:none">
+      <div class="outcome-banner" id="outcome-banner">
+        <div id="outcome-text"></div>
+        <div class="pts" id="outcome-pts"></div>
+      </div>
+      <div id="cascade-note" class="cascade-note" style="display:none"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="confirm-btn" onclick="confirmChoice()" disabled>Confirm Decision</button>
+      <button class="btn btn-secondary" id="next-btn" onclick="nextSc()" style="display:none">Next Scenario</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-debrief" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="debrief-photo-wrap">
+    <img class="debrief-photo"
+      src="https://images.unsplash.com/photo-1518478930819-1cc31e5d3a8d?auto=format&fit=crop&w=1920&q=80"
+      alt="Underwater cave exit"
+      onerror="this.style.display='none';this.nextElementSibling.style.background='linear-gradient(to bottom,rgba(6,9,16,0.4),rgba(6,9,16,0.95))'">
+    <div class="debrief-photo-overlay"></div>
+  </div>
+  <div class="debrief-header" id="debrief-header-block">
+    <div class="result-icon" id="db-icon"></div>
+    <div class="debrief-rule"></div>
+    <h1 id="db-title">Project Complete</h1>
+    <p id="db-sub"></p>
+  </div>
+  <div class="final-scores">
+    <div class="final-score-card">
+      <div class="label">Safety</div>
+      <div class="val safety" id="fs-safety">0</div>
+      <div class="score-denom">/ 20</div>
+    </div>
+    <div class="final-score-card">
+      <div class="label">Gas</div>
+      <div class="val time" id="fs-time">0</div>
+      <div class="score-denom">/ 15</div>
+    </div>
+    <div class="final-score-card">
+      <div class="label">Cohesion</div>
+      <div class="val focus" id="fs-focus">0</div>
+      <div class="score-denom">/ 15</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Project Verdict</h3>
+    <p id="db-narrative" style="line-height:1.9;color:rgba(237,240,248,0.78)"></p>
+  </div>
+  <div class="card">
+    <h3>Decision Log</h3>
+    <p class="muted" style="font-size:0.79rem;margin-bottom:16px">Earlier decisions shaped later crises.</p>
+    <div class="decision-log" id="db-log"></div>
+  </div>
+  <div class="card">
+    <h3>Psychological Debrief</h3>
+    <p id="db-psych" style="color:rgba(237,240,248,0.78);line-height:1.9"></p>
+  </div>
+  <div class="btn-row" style="justify-content:center;margin-top:8px;flex-wrap:wrap;gap:10px">
+    <button class="btn btn-secondary" onclick="window.location.href='index.html'">&#8592; Home</button>
+    <button class="btn btn-secondary" onclick="generatePDFReport()" style="border-color:rgba(56,196,212,0.3);color:var(--accent)">&#8595; Download Report</button>
+    <button class="btn btn-primary" onclick="resetGame()">Play Again</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const ARCHETYPES=[
+{id:'navigator',name:'Navigator',tagline:'Creates clarity through structure, direction, and planning.',response:'Lay out the options clearly and map the fastest, safest route forward.'},
+{id:'guardian',name:'Guardian',tagline:'Protects the team by managing risk and upholding standards.',response:'Assess the risk first. Protect the group before moving forward.'},
+{id:'synchroniser',name:'Synchroniser',tagline:'Keeps people aligned so the team moves as one system.',response:'Make sure everyone understands the situation and is working together.'},
+{id:'anchor',name:'Anchor',tagline:'Stabilises the group under pressure by regulating emotion.',response:'Stay calm, keep the group steady, and create space to think clearly.'},
+{id:'connector',name:'Connector',tagline:'Builds trust and cohesion by keeping relationships strong.',response:'Check in with each person. Trust and communication come first.'},
+{id:'energiser',name:'Energiser',tagline:'Raises team energy and drives momentum forward.',response:'Lift the mood, maintain momentum, and keep people moving.'},
+{id:'decision_maker',name:'Decision-Maker',tagline:'Steps forward with clarity and commitment when action is needed.',response:'Make the call. Clarify the decision, own it, and move the team forward.'},
+{id:'explorer',name:'Explorer',tagline:'Finds new paths through experimentation and adaptation.',response:'Test assumptions. Look for options that are not obvious yet.'},
+{id:'innovator',name:'Innovator',tagline:'Challenges assumptions and generates new possibilities.',response:'Question whether the plan is still the right plan. What are we missing?'}
+];
+
+const ARCH_SCENARIO=`Your dive team is 800 metres into an unmapped cave passage at 28 metres depth. Visibility is dropping as silt rises from the floor. Your gas is at the two-thirds turn point. Your buddy signals that their primary torch has failed. Behind you, the guideline is your only exit route. Ahead, the passage continues into unmapped darkness.\n\nUnder pressure, it is your natural preference to...`;
+
+const SCENARIOS=[
+{id:'sc01',day:1,type:'normal',timed:false,title:'Pre-project equipment check',
+body:`Morning of Day 1 at the team's cenote base camp near Tulum. Dr. Reyes conducts the mandatory pre-expedition equipment check before any water entry. She identifies three concerns: one diver's primary regulator has a creeping first-stage issue delivering 5 to 7% over working pressure under cold water conditions, the primary guideline reel for the lead diver pair is missing 30 metres of line that was damaged and removed but not restocked, and one dive computer shows battery at 27% with no spare available.\n\nDr. Reyes: "Cave divers die from equipment failures they knew about and accepted. Every item on this list is a known problem."`,
+options:[
+{id:'a',text:'Send to Tulum for regulator service, restock the guideline reel completely, replace the dive computer battery. Accept a 24-hour delay.',quality:'best',safety:1,time:-1,focus:1,outcome:'Correct. The regulator returns serviced and within spec. The guideline reel is complete. The computer battery reads 100%. Reyes: "Now we dive. Everything else was preparation." The 24-hour delay is the best investment of the project.',tone:'good',cascade:'kit_complete',log:'Full equipment fix - 24h delay, kit complete'},
+{id:'b',text:'Switch the diver with the creeping reg to their backup as primary. Manage the guideline gap with protocol. Accept the computer battery risk.',quality:'ok',safety:-1,time:0,focus:-1,outcome:'Workable but precarious. Three known issues are managed rather than resolved. The team dives on improvised solutions from Day 1 - a pattern that cave diving does not reward.',tone:'ok',cascade:'kit_partial',log:'Equipment improvised - three known risks managed'},
+{id:'c',text:'Dismiss all three concerns. Cave diving veterans handle marginal equipment. Push to water on schedule.',quality:'worst',safety:-3,time:1,focus:-2,outcome:'Reyes records her formal objection. The decision to dismiss known equipment concerns on Day 1 establishes a risk-tolerance culture that will cost the team at depth.',tone:'bad',cascade:'kit_compromised',log:'Equipment concerns dismissed - Reyes objects formally'},
+{id:'d',text:'Dr. Reyes independently triages: fixes regulator and computer battery as must-fix, accepts guideline gap as manageable.',quality:'ok',safety:1,time:-1,focus:0,outcome:'Two of three issues resolved. The guideline gap remains a latent risk. Reyes\'s triage judgement is sound - the regulator and computer were the higher-priority items.',tone:'ok',cascade:'kit_reyes_fix',log:'Reyes triage - regulator and computer fixed, guideline gap accepted'}
+]},
+
+{id:'sc02',day:3,type:'normal',timed:false,title:'First dive - silt assessment',
+body:`Day 3. First dive into Sistema Sac Actun - a 3-hour traverse of a known 2.8km passage to confirm orientations before entering the unmapped northwest extension. Dr. Reyes leads. At 1.4km penetration, Reyes surfaces and signals the team to stop.\n\nShe has noticed the silt on the passage floor is disturbed and fresh deposits sit on the walls - suggesting recent water movement. Any fin kick in this section could reduce visibility to zero in seconds. The team can continue at standard spacing protocol, or switch to a single-file zero-disturb protocol that is slower but cleaner.`,
+options:[
+{id:'a',text:'Zero-disturb single-file protocol immediately. Fresh silt on walls means standard spacing could black out the entire passage.',quality:'best',safety:1,time:-1,focus:0,outcome:'The correct call. The team moves through the disturbed section without incident. Visibility holds at 8 metres throughout. Reyes: "That is why we stop and assess."',tone:'good',cascade:'silt_protocol',log:'Zero-disturb protocol applied - silt incident avoided'},
+{id:'b',text:'Continue at standard spacing but reduce fin kick frequency. Partial mitigation.',quality:'ok',safety:-1,time:0,focus:-1,outcome:'Visibility drops to 3 metres in the disturbed section. The team manages on guideline alone for 200 metres. No incident - but the margin was narrower than it needed to be.',tone:'ok',cascade:'silt_standard',log:'Reduced kick frequency - visibility dropped to 3m, managed'},
+{id:'c',text:'Continue unchanged. Fresh silt deposits are normal in wet season. Standard spacing is fine.',quality:'worst',safety:-2,time:1,focus:-2,outcome:'One diver\'s fin kick stirs the floor. Visibility collapses to zero for 90 seconds. Two divers separate briefly from the guideline. The 90-second blackout is controlled - but the incident shakes confidence going into the unmapped system.',tone:'bad',cascade:'silt_incident',log:'Silt blackout - 90 seconds zero visibility, two divers separated'},
+{id:'d',text:'Surface and conduct a full team risk assessment discussion before continuing.',quality:'ok',safety:0,time:-1,focus:1,outcome:'The discussion clarifies the protocol for the rest of the project. Zero-disturb is agreed as the standard for any section showing disturbed silt. 20 minutes spent, a policy gained.',tone:'ok',cascade:'silt_discussed',log:'Team silt protocol agreed - 20min cost, policy established'}
+]},
+
+{id:'sc03',day:5,type:'normal',timed:false,title:'T-junction in unmapped passage',
+body:`Day 5. First penetration dive into the unmapped northwestern extension. At 800 metres beyond the last known passage, Dr. Reyes's lead pair reaches a T-junction not on any existing map. Both passages run northwest and are visually identical - same depth, same passage width, same water colour.\n\nThe primary guideline reel is being laid along Passage A. Three options: continue Passage A, split the reel to mark both passages, or surface, mark the junction precisely, and return tomorrow with a second dedicated reel for Passage B.\n\nDr. Reyes: "A T-junction with one guideline reel is a problem looking for a place to happen."`,
+options:[
+{id:'a',text:'Surface now. Mark the junction with GPS coordinates. Return tomorrow with a second dedicated reel. Never improvise at an unmapped T-junction.',quality:'best',safety:1,time:-1,focus:1,outcome:'The professional call. Tomorrow the team dives both passages simultaneously with dedicated reels. The junction is properly mapped. Reyes: "This is how cave divers grow old."',tone:'good',cascade:'junction_safe',log:'T-junction - surfaced, returned tomorrow with second reel'},
+{id:'b',text:'Continue on Passage A with a clear junction marker. Return to Passage B on the next dive.',quality:'ok',safety:0,time:0,focus:0,outcome:'A reasonable single-passage approach. Passage A is explored safely. The junction marker holds. Passage B awaits a dedicated reel on the next dive.',tone:'ok',cascade:null,log:'Passage A continued - junction marked, B deferred'},
+{id:'c',text:'Split the single guideline reel to cover both passages. Explore both today.',quality:'worst',safety:-3,time:1,focus:-2,outcome:'The split guideline provides inadequate line on both passages. At 200m into Passage B, the reel runs out. Two divers must navigate back on inadequate line in reducing visibility. Minor incident - major lesson.',tone:'bad',cascade:'guideline_split',log:'Guideline split - inadequate line on both passages, incident'},
+{id:'d',text:'Continue Passage A 200m further to assess which is the primary route, then surface.',quality:'ok',safety:-1,time:0,focus:-1,outcome:'The extra 200m of Passage A reveals it widens into a larger chamber - probably the primary route. But the unsupported 200m extension beyond planned penetration was an unnecessary risk.',tone:'ok',cascade:'guideline_extended',log:'Extended Passage A 200m - primary route identified, unsupported risk'}
+]},
+
+{id:'sc04',day:8,type:'crisis',timed:true,title:'Gas emergency at 600 metres',
+body:`CRISIS - Day 8. Team member Torres is at 600 metres penetration when his primary tank pressure shows an anomalous drop: 210 bar to 170 bar in 4 minutes. Either a regulator fault or a slow catastrophic failure. Torres signals the emergency. He has approximately 20 minutes of gas if the pattern continues. His dive buddy Chen is 15 metres ahead, not yet aware. The exit is 600 metres behind them.\n\nYour timer is running.`,
+options:[
+{id:'a',text:'Torres activates his emergency signal immediately. Chen turns. Torres switches to his backup regulator. Controlled buddy-share exit begins. Both divers exit on Torres\'s backup and Chen\'s primary - enough for a safe 600-metre exit.',quality:'best',safety:1,time:-1,focus:0,outcome:'Textbook emergency response. Chen turns on the signal. Torres on backup. Buddy-share exit at minimum exertion. Both divers surface safely. The regulator fault is confirmed as a cracked o-ring. A $2 part.',tone:'good',cascade:'gas_managed',log:'Gas emergency - textbook buddy-share exit, both safe'},
+{id:'b',text:'Torres attempts to manage the fault (o-ring check, reduce breathing rate) while beginning exit.',quality:'ok',safety:-2,time:0,focus:-1,outcome:'Torres reduces his breathing rate and begins exit alone. The fault rate slows but does not stop. He surfaces with 28 bar remaining - significantly less margin than the buddy-share approach would have left.',tone:'ok',cascade:'gas_watched',log:'Gas emergency self-managed - surfaced with 28 bar margin'},
+{id:'c',text:'Continue toward the unmapped section. "I have 20 minutes. The new passage is 100 metres ahead."',quality:'worst',safety:-5,time:0,focus:-2,outcome:'At 100 metres into the new passage the fault rate accelerates. Torres is now at 80 bar with 700 metres to exit. Emergency buddy-share at full exertion consumes gas faster than the calculation predicted. Both divers surface with 8 bar. Mission Control is notified.',tone:'bad',cascade:'gas_crisis',log:'Continued on failing gas - surfaced with 8 bar, emergency exit'},
+{id:'d',text:'Torres signals emergency. Waits for the full team to gather before beginning exit.',quality:'ok',safety:-1,time:-1,focus:0,outcome:'The full team gathers in 4 minutes. The additional wait cost Torres 40 bar while stationary. Exit proceeds safely but with reduced margin. The gathering delay was unnecessary in a buddy-pair emergency.',tone:'ok',cascade:'gas_team_exit',log:'Full team gathered before exit - safe but reduced margin'}
+]},
+
+{id:'sc05',day:11,type:'normal',timed:false,title:'Toxic air pocket',
+body:`Day 11. At 1,100 metres penetration the team surfaces in an air pocket - a previously unmapped domed chamber above the water. Dr. Reyes immediately checks atmospheric composition with the expedition sensor.\n\nResults: oxygen 17.8% (normal minimum 19.5%), CO2 2.1% (normal maximum 0.5%). This air pocket is oxygen-depleted and CO2-elevated - likely from decomposing organic matter sealed in the chamber for decades. It is not immediately fatal but sustained breathing would cause rapid cognitive impairment. The team's scuba gas is the only breathable air available. The passage beyond the air pocket continues into the unmapped northwest extension.`,
+options:[
+{id:'a',text:'Do not remove any scuba equipment in the air pocket. Maintain regulators in mouths throughout. Proceed through the pocket underwater to the continuation passage.',quality:'best',safety:1,time:-1,focus:0,outcome:'Correct. The team passes through the air pocket without removing equipment. The continuation passage opens into a clear 14-metre passage beyond. The pocket is marked as "toxic atmosphere" on the survey map.',tone:'good',cascade:'pocket_safe',log:'Toxic pocket identified - passed through underwater, marked on map'},
+{id:'b',text:'Breathe from scuba while investigating the chamber for 10 minutes before continuing.',quality:'ok',safety:-1,time:0,focus:0,outcome:'The team investigates the chamber on scuba. No equipment is removed. The 10-minute investigation is thorough. Gas is used at a higher rate than the dive plan specified.',tone:'ok',cascade:'pocket_risked',log:'Chamber investigated on scuba - gas higher than plan, safe'},
+{id:'c',text:'Remove masks to breathe the air pocket while resting. "It\'s marginal. We need the rest."',quality:'worst',safety:-4,time:0,focus:-2,outcome:'Three divers remove masks and breathe the pocket air. Within 4 minutes two show cognitive confusion. The third catches the symptoms and emergency regulators go back in. The CO2 impairment takes 20 minutes to clear. The dive is aborted.',tone:'bad',cascade:'pocket_incident',log:'Air pocket breathed - CO2 impairment, emergency regulator, dive aborted'},
+{id:'d',text:'Surface, mark the chamber on the map, and hold a team discussion on exit versus continuation.',quality:'ok',safety:0,time:-1,focus:1,outcome:'The team exits and discusses. The toxic pocket is properly risk-assessed. A unanimous decision is made to proceed through it underwater on the next dive. The discussion costs 45 minutes but creates shared understanding.',tone:'ok',cascade:'pocket_assessed',log:'Chamber discussed topside - unanimous proceed decision, 45min cost'}
+]},
+
+{id:'sc06',day:14,type:'crisis',timed:true,title:'Lost guideline in silt-out',
+body:`CRISIS - Day 14, 900 metres penetration. A sudden underwater current pulse - rare but documented in Sac Actun - has lifted silt from the floor. Visibility has dropped to 0.5 metres in seconds. Two team members cannot locate the guideline. Gas is at the two-thirds turn point. The exit is 900 metres behind. No visibility. No guideline contact.\n\nYour timer is running.`,
+options:[
+{id:'a',text:'All stop immediately. No movement. Find the guideline by systematic tactile search from current position. Follow it hand-over-hand at minimum exertion. Do not swim unless touching the line.',quality:'best',safety:1,time:-1,focus:0,outcome:'Correct protocol. The guideline is found by feel within 90 seconds. Hand-over-hand exit at minimal exertion preserves gas. The team surfaces 40 minutes later, gas margins intact. Reyes: "Stopping is the hardest thing to do. It is also the most important."',tone:'good',cascade:'guideline_recovered',log:'Guideline found by feel - hand-over-hand exit, all safe'},
+{id:'b',text:'Navigate by compass bearing toward the entrance while searching for the guideline.',quality:'ok',safety:-1,time:0,focus:-1,outcome:'The compass bearing is approximately correct. The guideline is found after 200 metres of compass navigation. The additional exertion has consumed 15% more gas than the hand-over-hand approach would have.',tone:'ok',cascade:'guideline_compass',log:'Compass navigation to guideline - 15% more gas consumed'},
+{id:'c',text:'Follow the floating section of guideline in the current direction. It will lead somewhere.',quality:'worst',safety:-4,time:-1,focus:-3,outcome:'The floating guideline leads deeper into the system, away from the exit. Two divers follow it 100 metres before the error is caught. Emergency exit from the wrong depth, wrong direction. Gas critically low. All surface safely - by the smallest margin.',tone:'bad',cascade:'guideline_lost',log:'Followed wrong guideline direction - emergency exit, critical gas margin'},
+{id:'d',text:'Buddy pair closest to the entrance goes first on compass bearing; others follow in their bubbles.',quality:'ok',safety:0,time:-1,focus:-1,outcome:'The bubble-following technique works in theory. In 0.5m visibility, following bubbles requires maintaining 2-metre separation - stressful but achievable. The team exits in column formation. Gas margins are adequate.',tone:'ok',cascade:'guideline_buddied',log:'Bubble-following exit - 2m separation in zero vis, adequate gas'}
+]},
+
+{id:'sc07',day:17,type:'normal',timed:false,title:'Nitrogen narcosis accumulation',
+body:`Day 17. Team member Osei returns from a 38-metre depth dive showing signs of prolonged nitrogen narcosis recovery: poor short-term memory, slowed processing, mild euphoria that persists 40 minutes after surfacing. In cave diving, narcosis at depth is managed dive by dive. But accumulated nitrogen over repeated deep dives creates a progressive residual cognitive effect across an expedition.\n\nDr. Reyes: "Osei should not dive below 20 metres for 48 hours. This is a medical recommendation, not a suggestion."`,
+options:[
+{id:'a',text:'Accept Dr. Reyes\'s recommendation. Osei is assigned to shallow-water support tasks for 48 hours. No negotiation.',quality:'best',safety:1,time:-1,focus:0,outcome:'Osei works the shallow cenote entrance for 48 hours. Cognitive assessment returns to baseline. On Day 19 Osei completes the deepest dive of the project with full clarity. Reyes: "That is how you protect a diver for the whole project."',tone:'good',cascade:'narcosis_managed',log:'Narcosis rest enforced - Osei cognitive baseline restored in 48h'},
+{id:'b',text:'Reduce Osei\'s depth limit to 25 metres. Continue with modified assignments.',quality:'ok',safety:-1,time:0,focus:-1,outcome:'Osei dives at 25m. The residual narcosis at this shallower depth is manageable. But the cognitive deficit is not fully resolved and Osei\'s performance on complex navigation tasks remains below baseline.',tone:'ok',cascade:'narcosis_partial',log:'Osei depth-limited to 25m - partial recovery, below-baseline navigation'},
+{id:'c',text:'Allow Osei to continue full-depth diving. Narcosis at depth is part of technical diving.',quality:'worst',safety:-3,time:1,focus:-2,outcome:'On Day 19 Osei makes a gas calculation error at 35 metres. The error is caught by Chen. The incident is logged. Reyes records formally that the recommendation was overridden.',tone:'bad',cascade:'narcosis_incident',log:'Narcosis recommendation overridden - gas calculation error Day 19'},
+{id:'d',text:'Ask Osei to self-assess for dive fitness. Trained diver self-report carries weight.',quality:'ok',safety:0,time:0,focus:1,outcome:'Osei self-reports as "functional but not sharp." This honest self-assessment leads to a mutually agreed 24-hour shallow assignment. Partial recovery. Better than the forced-dive outcome, less effective than the full 48-hour rest.',tone:'ok',cascade:'narcosis_selfassessed',log:'Osei self-assessed - 24h shallow rest, partial recovery'}
+]},
+
+{id:'sc08',day:21,type:'crisis',timed:true,title:'Ceiling fracture at 1,400 metres',
+body:`CRISIS - Day 21, 1,400 metres penetration - the deepest point of the expedition. A low-frequency vibration is felt through the water. The Yucatan karst is subject to micro-seismic events from sinkholes collapsing. Then: the passage ceiling 40 metres ahead shows new fracture lines that were not present on yesterday's survey dive.\n\nThe passage beyond contains the target junction that may connect to the unmapped northwest terminal chamber. But the fracture may be progressing. Timer running.`,
+options:[
+{id:'a',text:'Turn immediately. No justification outweighs an unstable ceiling with a 1,400-metre exit. Document the GPS coordinates and return with a geologist assessment.',quality:'best',safety:1,time:-1,focus:0,outcome:'The team exits. A karst geologist assesses the fracture pattern remotely via photograph and confirms: stable compression fracture, very low collapse risk. The team dives again on Day 23 with full confidence. Reyes: "Turning was the professional decision. Returning with data was the right next step."',tone:'good',cascade:'collapse_avoided',log:'Ceiling fracture - immediate turn, geologist assessment obtained'},
+{id:'b',text:'Observe the fracture carefully for 5 minutes. If no movement is detected, pass through quickly.',quality:'ok',safety:-2,time:0,focus:-1,outcome:'The 5-minute observation detects no movement. The team passes through. No collapse. But the risk-reward calculation for a 5-minute observation at 1,400-metre penetration was unfavourable regardless of outcome.',tone:'ok',cascade:'collapse_passed',log:'5-minute fracture observation - no movement, passed through'},
+{id:'c',text:'Continue through the fracture zone. The target is 200 metres beyond. It looks stable enough.',quality:'worst',safety:-5,time:1,focus:-2,outcome:'A section of the ceiling fractures and drops into the passage at the moment the last diver passes through. The debris cloud reduces visibility to zero. Emergency exit from 1,400m in total blackout. All divers surface. The project is over.',tone:'bad',cascade:'collapse_incident',log:'Ceiling collapse during passage - emergency exit from 1,400m'},
+{id:'d',text:'Two divers observe for 10 minutes while others hold at safe distance. Majority vote on proceed or turn.',quality:'ok',safety:-1,time:-2,focus:0,outcome:'10 minutes of observation at depth consumes gas. The vote is 3 to 2 to turn. The project continues with the geologist assessment approach. Two divers are unhappy with the democratic process at depth.',tone:'ok',cascade:'collapse_discussed',log:'10-min observation and team vote - turned, geologist assessment'}
+]},
+
+{id:'sc09',day:26,type:'normal',timed:false,title:'The terminal chamber',
+body:`Day 26. Following the geologist's assessment, the team returns to the fracture zone and passes through safely. At 1,600 metres penetration they surface in an unmapped domed chamber - 80 metres wide, 12 metres of ceiling height above the water, with stalactites descending below the waterline. Stalactites form in air. This chamber was dry for tens of thousands of years.\n\nThis is genuinely new to science. Gas supply is at the two-thirds turn point. The team can conduct a 30-minute surface survey, a 10-minute photographic record with hands on gas valves, or exit immediately.`,
+options:[
+{id:'a',text:'10-minute photographic record with gas valves accessible at all times. Document the discovery properly but protect the exit gas margin.',quality:'best',safety:0,time:-1,focus:2,outcome:'The 10 minutes produces extraordinary documentation. Every major feature is photographed. Gas margins remain at 38% when the team begins the exit - exactly within safe parameters. The discovery is published to global attention.',tone:'good',cascade:'chamber_documented',log:'Terminal chamber - 10min photo record, gas margins safe'},
+{id:'b',text:'Exit immediately. The gas rule is absolute. We have seen it. Exit.',quality:'ok',safety:1,time:0,focus:-1,outcome:'The team exits with maximum gas margin. The chamber is documented from the entry point photographs only. The science is partial but the safety margin was never compromised.',tone:'ok',cascade:'chamber_safe_exit',log:'Terminal chamber - immediate exit, entry photographs only'},
+{id:'c',text:'Full 30-minute surface survey. "This is why we came. The gas margin exists for exactly this."',quality:'worst',safety:-3,time:1,focus:-1,outcome:'At minute 22, Reyes calls the exit. Gas is at 51% - inside the limit but with no emergency reserve. The exit proceeds without incident. But the margin consumed in the chamber left nothing for any deviation on the 1,600-metre return.',tone:'bad',cascade:'chamber_overstay',log:'30-minute chamber survey - gas at 51% on exit, no emergency reserve'},
+{id:'d',text:'One diver maintains valve watch for the team while the others photograph freely for 15 minutes.',quality:'ok',safety:0,time:-1,focus:1,outcome:'The valve-watch system works well. The designated diver monitors all six gas supplies while the others document. 15 minutes of excellent photography with active safety management.',tone:'ok',cascade:'chamber_documented',log:'Valve watch system - 15min photography, active safety monitoring'}
+]},
+
+{id:'sc10',day:22,type:'normal',timed:false,title:'Task fixation warning',
+body:`Day 22. Three weeks into a cave diving expedition. Dr. Reyes identifies a specific psychological pattern across two divers: task fixation - hyperfocus on dive objectives at the expense of ambient environmental awareness. Measured as slower response times to non-objective stimuli and reduced peripheral monitoring during complex navigation tasks.\n\nTask fixation is documented in cave diving fatality reports as a primary contributing factor. It is the cognitive state in which an experienced diver stops seeing the cave around them because they are wholly consumed by what they are trying to find.`,
+options:[
+{id:'a',text:'Full team debrief on task fixation. Case studies from cave diving incidents reviewed. Zero-shame discussion of each diver\'s current awareness state.',quality:'best',safety:0,time:-1,focus:3,outcome:'The debrief surfaces two things: the two identified divers are aware of their state and relieved to name it, and three other team members identify themselves as early-stage as well. The shared language for awareness state management transforms the final week of the project.',tone:'good',cascade:'psych_aware',log:'Task fixation debrief - all five divers identify, shared language created'},
+{id:'b',text:'Brief the team on task fixation as a concept. Create shared vocabulary for the phenomenon.',quality:'ok',safety:0,time:0,focus:1,outcome:'Useful. The naming helps. The structure to act on the naming is missing. The identified divers improve modestly. The three unidentified divers do not improve at all.',tone:'ok',cascade:null,log:'Task fixation briefed - modest improvement in identified divers'},
+{id:'c',text:'Continue diving. "We are professionals. Task fixation is managed by experience, not discussion."',quality:'worst',safety:-1,time:1,focus:-3,outcome:'On Day 25 one of the identified divers misses a junction marker at 800 metres penetration. The error is caught by their buddy - adding 200 metres of unnecessary penetration before correction. The task fixation pattern deepens through the final dives.',tone:'bad',cascade:'psych_fixation',log:'Task fixation ignored - junction missed Day 25, pattern deepens'},
+{id:'d',text:'Assign buddy pairs with explicit responsibility to monitor each other\'s awareness state on every dive.',quality:'ok',safety:0,time:0,focus:1,outcome:'The buddy monitoring creates a structured check-in that partially addresses the fixation pattern. The identified divers improve with the external accountability. Not as effective as a full team debrief but a genuine intervention.',tone:'ok',cascade:'buddy_watch',log:'Buddy awareness monitoring assigned - partial task fixation improvement'}
+]},
+
+{id:'sc11',day:25,type:'normal',timed:false,title:'Exit route decision',
+body:`Day 25. Five days remaining. The team is in the western exploration zone and must return to base camp cenote. Two routes available:\n\nRoute A: 2.8km through the fully known passage - 4.5 hours, safe, established gas plan, familiar navigation.\n\nRoute B: 1.6km through a passage Dr. Reyes mapped on Day 24 but has only dived once. Saves 3 hours. Has one unmapped section. No established gas planning baseline.\n\nDr. Reyes is silent on this decision. She has made her view clear before: exit on the route with the established gas plan.`,
+options:[
+{id:'a',text:'Route A. Always exit on the established gas plan. Route B has not been dived enough to be used as an exit route.',quality:'best',safety:1,time:-1,focus:0,outcome:'Route A. 4.5 hours. The team exits safely on the known passage with full gas margins. Reyes: "Every time a team takes a shortcut exit on a new route, they are gambling with the gas plan. We won\'t."',tone:'good',cascade:'exit_safe',log:'Route A - established exit, full gas margins'},
+{id:'b',text:'Route B with conservative gas planning: turn at half instead of two-thirds.',quality:'ok',safety:-1,time:1,focus:-1,outcome:'The conservative gas plan partially compensates for Route B\'s unknowns. The unmapped section adds 20 minutes. The team exits safely with 28% gas remaining - less comfortable than Route A but within safe parameters.',tone:'ok',cascade:'exit_b_conservative',log:'Route B conservative - 20min unmapped delay, 28% gas on exit'},
+{id:'c',text:'Route B at standard two-thirds gas planning. "Reyes mapped it yesterday. It\'s established."',quality:'worst',safety:-3,time:2,focus:-2,outcome:'One dive does not establish a gas plan baseline. The unmapped section is 40% longer than estimated. Gas reaches 12% at the exit point. Emergency decompression staging is skipped to conserve gas. Incident logged.',tone:'bad',cascade:'exit_b_incident',log:'Route B standard - gas at 12% exit, decompression skipped'},
+{id:'d',text:'Dr. Reyes solos Route B one more time to establish a gas baseline before team use.',quality:'ok',safety:0,time:-1,focus:0,outcome:'Reyes\'s solo dive confirms Route B is 2.1km rather than the mapped 1.6km. The gas baseline she establishes makes Route B genuinely viable. The team uses it safely on Day 27 with full data.',tone:'ok',cascade:'exit_b_tested',log:'Reyes solo to baseline Route B - 2.1km confirmed, team uses Day 27'}
+]},
+
+{id:'sc12',day:28,type:'summit',timed:true,title:'The final dive - unplanned passage',
+body:`SUMMIT PUSH - Day 28. The final dive of Project Sac Actun: a complete photographic survey of the terminal chamber and a systematic return through the newly mapped passages. At 1,200 metres penetration, Dr. Reyes signals the team to stop.\n\nShe has spotted a new side passage - small opening, unmarked, clearly continues beyond visual range. Gas is at exactly the one-half point (above the two-thirds safety margin - there is genuine capacity). This passage was not in the dive plan. It may be significant. Timer running. 90 seconds.`,
+options:[
+{id:'a',text:'No. The gas plan was set for the planned dive. A new passage requires a new plan, new gas allocation, and a safety briefing. Document the location and exit.',quality:'best',safety:1,time:-1,focus:0,outcome:'The team exits. The side passage location is logged with precision GPS. On the final day, Dr. Reyes presents the unplanned passage as the first objective of the follow-on expedition she is already planning. The project is complete. Everyone surfaces.',tone:'good',cascade:'project_complete',log:'Unplanned passage declined - GPS logged, follow-on expedition planned'},
+{id:'b',text:'Dr. Reyes dives the side passage 50 metres solo while the team holds position. One controlled deviation.',quality:'ok',safety:-1,time:0,focus:-1,outcome:'Reyes enters 50 metres. The passage widens into a significant chamber. She exits with photographs and a GPS fix. The deviation is controlled and professionally managed. One diver is unhappy that the rule of thirds was bent on the final day.',tone:'ok',cascade:'project_complete',log:'Reyes solo 50m - significant chamber found, controlled deviation'},
+{id:'c',text:'The whole team explores the side passage. "We have gas margin. This might be the best discovery of the project."',quality:'worst',safety:-5,time:1,focus:-2,outcome:'At 200 metres into the side passage the passage narrows and turns. Three divers turn back. Two continue. The two who continue find a cathedral-size chamber at 250 metres and spend 8 minutes inside it. Exit gas is at 14%. All surface. The project\'s final dive is its most dangerous.',tone:'bad',cascade:'project_incident',log:'Full team side passage - cathedral found, 14% gas exit'},
+{id:'d',text:'One buddy pair dives the side passage 100m maximum while others complete the planned survey.',quality:'ok',safety:0,time:-1,focus:-1,outcome:'The buddy pair finds the passage widens at 80 metres. They exit at 100 metres as planned. The planned survey is completed by the others simultaneously. Two partial successes rather than one complete success.',tone:'ok',cascade:'project_complete',log:'Buddy pair 100m side passage - planned survey complete simultaneously'}
+]},
+
+{id:'sc13',day:29,type:'normal',timed:false,title:'Final decompression',
+body:`Day 29. Project complete. The team is decompressing in the cenote entry pool after the final dive. Required surface decompression: 25 minutes at 3 metres depth before surfacing. Two team members are visibly exhausted and beginning to ascend ahead of schedule.\n\nFlying home is in 36 hours - well within safe flying-after-diving limits. But decompression sickness does not acknowledge achievement. Post-expedition release is a physiologically dangerous phase. The enthusiasm to surface is real. The decompression obligation is non-negotiable.`,
+options:[
+{id:'a',text:'Dr. Reyes calls both members back to 3 metres explicitly. Decompression is non-negotiable regardless of exhaustion or emotional state.',quality:'best',safety:1,time:0,focus:0,outcome:'Both divers return to 3 metres without argument. The 25-minute decompression is completed fully. Everyone surfaces together. Reyes: "That is the project completed. Not at 22 minutes. At 25."',tone:'good',cascade:null,log:'Full decompression enforced - project completed at 25 minutes'},
+{id:'b',text:'Gently remind both members of the protocol. Trust their training to take over.',quality:'ok',safety:0,time:0,focus:0,outcome:'Both divers return to depth after the reminder. The protocol is completed. The gentle approach preserved dignity and achieved compliance.',tone:'ok',cascade:null,log:'Decompression reminder - compliance achieved, protocol complete'},
+{id:'c',text:'Allow the early surfacing. "Three minutes early after 28 perfect days."',quality:'worst',safety:-3,time:0,focus:-2,outcome:'One diver develops mild DCS symptoms (joint pain, mild rash) 90 minutes after surfacing. The symptoms resolve over 6 hours but require oxygen administration and grounding for 24 additional hours. The flight home is delayed.',tone:'bad',cascade:'decompression_incident',log:'Early surfacing allowed - DCS symptoms, flight delayed 24h'},
+{id:'d',text:'Assign a buddy to physically stay with each early-surfacing diver at 3 metres.',quality:'ok',safety:1,time:0,focus:-1,outcome:'The buddies hold position with the two eager divers. Social accountability is more effective than protocol reminder alone. Full decompression completed. All surface together.',tone:'ok',cascade:null,log:'Buddy decompression support - full protocol completed together'}
+]},
+
+{id:'sc14',day:30,type:'normal',timed:false,title:'Post-project debrief',
+body:`Day 30. The team is gathered at the surface camp. Project Sac Actun is complete. The terminal chamber has been documented. 600 metres of unmapped passage has been surveyed. Dr. Reyes calls for the final debrief - a structured review of the decision-making across 30 days, with specific attention to the moments where the team's choices made the difference between safety and incident.\n\nDr. Reyes: "In cave diving, we read the fatality reports. Every accident is a sequence of decisions. Today we read our own report - while everyone is still here to read it."`,
+options:[
+{id:'a',text:'Full structured debrief: every major decision reviewed. Reyes identifies moments where the team exceeded industry standard and moments where it did not. Both examined equally.',quality:'best',safety:0,time:0,focus:2,outcome:'The debrief is thorough and honest. Three decisions are identified as better than industry standard. Two are identified as below it. The below-standard decisions are examined without blame and with genuine learning. The project\'s safety record is explained, not assumed.',tone:'good',cascade:null,log:'Full structured debrief - 3 above standard, 2 below, all examined'},
+{id:'b',text:'Group debrief over a final meal. Technical focus. Good conversation. Some lessons captured.',quality:'ok',safety:0,time:0,focus:0,outcome:'The technical record is reviewed. The psychological lessons are partially captured. The loudest voices shape the narrative. The project ends in warmth rather than rigour.',tone:'ok',cascade:null,log:'Group debrief over dinner - technical focus, psychological lessons partial'},
+{id:'c',text:'No formal debrief. "We mapped the chamber. That is the record."',quality:'worst',safety:0,time:0,focus:-2,outcome:'The project ends without structured review. The decisions that were almost catastrophic - and the ones that prevented catastrophe - are not examined. Future projects by these same divers inherit the same unexamined assumptions.',tone:'bad',cascade:null,log:'No debrief - project record assumed rather than understood'},
+{id:'d',text:'Individual written dive logs reviewed first, then a group session facilitated by Dr. Reyes.',quality:'best',safety:0,time:0,focus:1,outcome:'Private reflection before group sharing means every voice is equally prepared. Reyes\'s facilitation draws out the quieter observations - often the most valuable. The project is fully documented: technically and psychologically.',tone:'good',cascade:null,log:'Individual logs then group session - full documentation, all voices heard'}
+]}
+];
+
+const RESOURCE_MAX={safety:20,time:15,focus:15};
+const STARTING_RESOURCES={safety:20,time:15,focus:15};
+const SEEDED_TOP_SCORES=[
+  {name:'CEDAM Research Unit',s:44},
+  {name:'Team Tulum',s:19},
+  {name:'Cenote Survey 7',s:12}
+];
+
+const SCORE_TUNING={timeTradeoff:{scenario:'sc11',option:'b'}};
+
+function tuneScenarioScores(scenarios,config){
+  scenarios.forEach((sc,scIndex)=>{
+    sc.options.forEach(opt=>{
+      const isTimeTradeoff=config.timeTradeoff&&sc.id===config.timeTradeoff.scenario&&opt.id===config.timeTradeoff.option;
+      if(isTimeTradeoff){
+        opt.time=1;
+        if(opt.safety>=0)opt.safety=-1;
+      }else if(opt.time>-1){
+        opt.time=-1;
+      }
+      if(opt.quality==='best'){
+        if(opt.focus>-1&&scIndex%3!==1)opt.focus=-1;
+        else if(opt.focus>0)opt.focus=0;
+      }else if(opt.quality==='ok'&&opt.focus>1){
+        opt.focus=1;
+      }
+    });
+  });
+}
+
+function getDeficitCarryText(opt){
+  const deficits=[];
+  if(opt.safety<0)deficits.push('safety');
+  if(opt.time<0)deficits.push('time');
+  if(opt.focus<0)deficits.push('focus');
+  if(!deficits.length)return '';
+  if(deficits.length===1)return `This leaves the expedition carrying a ${deficits[0]} deficit into what comes next.`;
+  return `This leaves the expedition carrying ${deficits.slice(0,-1).join(', ')} and ${deficits[deficits.length-1]} deficits into what comes next.`;
+}
+
+tuneScenarioScores(SCENARIOS,SCORE_TUNING);
+
+function getStartingResources(){return {...STARTING_RESOURCES};}
+
+let S={teamName:'Team Sac Actun',playerCount:6,players:[],curPlayer:0,res:getStartingResources(),scIdx:0,selected:null,flags:[],log:[],timer:null,timerSec:60,timerExp:false,gameOver:false,others:[],callerIdx:0};
+let selArch=null;
+
+function injectNames(str){
+  if(!str)return str;
+  const names=S.players.map(p=>p.name);
+  const pA=names[0]||'Alex';
+  const pB=names.length>1?names[1]:'Jordan';
+  return str.replace(/\{PLAYER_A\}/g,pA).replace(/\{PLAYER_B\}/g,pB);
+}
+
+function goTo(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0)}
+
+function renderPlayerFields(){
+  const n=Math.min(9,Math.max(1,parseInt(document.getElementById('player-count-input').value)||1));
+  const c=document.getElementById('player-name-fields');c.innerHTML='';
+  for(let i=0;i<n;i++){const d=document.createElement('div');d.style.marginTop='10px';d.innerHTML=`<label>Player ${i+1} name</label><input type="text" id="pn-${i}" placeholder="Enter name" maxlength="24">`;c.appendChild(d)}
+}
+renderPlayerFields();
+
+function startAssessments(){
+  const n=Math.min(9,Math.max(1,parseInt(document.getElementById('player-count-input').value)||1));
+  S.teamName=document.getElementById('team-name-input').value.trim()||'Team Sac Actun';
+  S.playerCount=n;S.players=[];
+  for(let i=0;i<n;i++){const nm=(document.getElementById(`pn-${i}`)?.value.trim())||`Player ${i+1}`;S.players.push({name:nm,arch:null})}
+  S.curPlayer=0;showArch();
+}
+
+function showArch(){
+  const p=S.players[S.curPlayer];
+  document.getElementById('arch-heading').textContent=`${p.name} - choose your archetype`;
+  document.getElementById('arch-scenario').textContent=ARCH_SCENARIO;
+  selArch=null;document.getElementById('arch-confirm').disabled=true;
+  const taken=S.players.slice(0,S.curPlayer).map(x=>x.arch).filter(Boolean);
+  const grid=document.getElementById('arch-grid');grid.innerHTML='';
+  ARCHETYPES.forEach(a=>{
+    const c=document.createElement('div');
+    c.className='arch-card'+(taken.includes(a.id)?' taken':'');
+    c.dataset.id=a.id;
+    c.innerHTML=`<div class="arch-name">${a.name}</div><div class="arch-tagline">${a.response}</div>`;
+    c.onclick=()=>pickArch(a.id);grid.appendChild(c);
+  });
+  goTo('screen-archetype');
+}
+
+function pickArch(id){
+  const taken=S.players.slice(0,S.curPlayer).map(x=>x.arch).filter(Boolean);
+  if(taken.includes(id))return;
+  selArch=id;
+  document.querySelectorAll('.arch-card').forEach(c=>c.classList.toggle('selected',c.dataset.id===id));
+  document.getElementById('arch-confirm').disabled=false;
+}
+
+function confirmArch(){
+  if(!selArch)return;
+  S.players[S.curPlayer].arch=selArch;S.curPlayer++;
+  if(S.curPlayer<S.playerCount)showArch();else showIntro();
+}
+
+function showIntro(){
+  const badges=S.players.map(p=>{const a=ARCHETYPES.find(x=>x.id===p.arch);return`<span class="team-badge"><span class="dot"></span>${p.name} - ${a?a.name:'?'}</span>`}).join('');
+  document.getElementById('team-summary').innerHTML=`<div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.05em;text-transform:uppercase">Your Dive Team</div>${badges}`;
+  S.others=SEEDED_TOP_SCORES.map(team=>({...team}));
+  goTo('screen-intro');
+}
+
+function startGame(){
+  S.scIdx=0;S.res=getStartingResources();S.flags=[];S.log=[];S.gameOver=false;S.selected=null;S.callerIdx=0;
+  document.getElementById('hdr-name').textContent=S.teamName;
+  goTo('screen-game');renderSc();
+}
+
+function renderSc(){
+  const sc=SCENARIOS[S.scIdx];S.selected=null;killTimer();
+  document.getElementById('hdr-day').textContent=sc.day;
+  document.getElementById('hdr-sc').textContent=S.scIdx+1;
+  document.getElementById('sc-day-tag').textContent=`Day ${sc.day}`;
+  const tt=document.getElementById('sc-type-tag');
+  if(sc.type==='crisis'){tt.textContent='Crisis';tt.className='tag tag-crisis'}
+  else if(sc.type==='summit'){tt.textContent='Final Dive';tt.className='tag tag-summit'}
+  else{tt.textContent='Decision';tt.className='tag tag-normal'}
+  document.getElementById('sc-title').textContent=sc.title;
+  document.getElementById('sc-body').textContent=injectNames(sc.body);
+
+  const cb=document.getElementById('caller-banner');
+  const cn=document.getElementById('caller-name-display');
+  if(S.players.length>0){
+    const caller=S.players[S.callerIdx%S.players.length];
+    cn.textContent=caller.name;
+    cb.style.display='flex';
+    S.callerIdx++;
+  }else{cb.style.display='none'}
+
+  const opts=[...sc.options].sort(()=>Math.random()-.5);
+  const oc=document.getElementById('sc-options');oc.innerHTML='';
+  opts.forEach((o,i)=>{
+    const b=document.createElement('button');b.className='option-btn';b.dataset.id=o.id;
+    b.innerHTML=`<span class="option-letter">${String.fromCharCode(65+i)}</span>${injectNames(o.text)}`;
+    b.onclick=()=>pickOpt(o.id);oc.appendChild(b);
+  });
+  document.getElementById('outcome-area').style.display='none';
+  document.getElementById('cascade-note').style.display='none';
+  document.getElementById('confirm-btn').disabled=true;
+  document.getElementById('confirm-btn').style.display='inline-block';
+  document.getElementById('confirm-btn').textContent='Confirm Decision';
+  document.getElementById('confirm-btn').className='btn btn-primary';
+  document.getElementById('next-btn').style.display='none';
+  updateBars();updateSb();
+  if(sc.timed)startTimer();else document.getElementById('timer-wrap').style.display='none';
+}
+
+function pickOpt(id){
+  S.selected=id;
+  document.querySelectorAll('.option-btn').forEach(b=>b.classList.toggle('selected',b.dataset.id===id));
+  document.getElementById('confirm-btn').disabled=false;
+}
+
+function confirmChoice(){
+  if(!S.selected&&!S.timerExp)return;
+  killTimer();document.getElementById('timer-wrap').style.display='none';
+  const sc=SCENARIOS[S.scIdx];
+  let opt;
+  if(S.timerExp&&!S.selected){
+    opt=sc.options.find(o=>o.quality==='worst')||sc.options[sc.options.length-1];
+    document.querySelectorAll('.option-btn').forEach(b=>{if(b.dataset.id===opt.id)b.classList.add('selected')});
+  }else{opt=sc.options.find(o=>o.id===S.selected)}
+  if(!opt)return;
+  S.res.safety=Math.min(RESOURCE_MAX.safety,S.res.safety+opt.safety);
+  S.res.time=Math.min(RESOURCE_MAX.time,S.res.time+opt.time);
+  S.res.focus=Math.min(RESOURCE_MAX.focus,S.res.focus+opt.focus);
+  if(opt.cascade)S.flags.push(opt.cascade);
+  const imp=opt.safety+opt.time+opt.focus;
+  S.log.push({day:sc.day,label:injectNames(opt.log),impact:imp,tone:opt.tone});
+  const ob=document.getElementById('outcome-banner');
+  ob.className='outcome-banner '+opt.tone;
+  const deficitText=getDeficitCarryText(opt);
+  document.getElementById('outcome-text').textContent=injectNames(opt.outcome)+(deficitText?` ${deficitText}`:'');
+  const pts=[[opt.safety,'Safety'],[opt.time,'Gas'],[opt.focus,'Cohesion']].filter(x=>x[0]!==0).map(x=>`${x[1]} ${x[0]>0?'+':''}${x[0]}`).join('  ·  ');
+  document.getElementById('outcome-pts').textContent=pts||'No point change';
+  document.getElementById('outcome-area').style.display='block';
+  const futureText=[deficitText,opt.cascade&&opt.quality!=='best'?'This decision may affect a future scenario.':''].filter(Boolean).join(' ');
+  if(futureText){const csn=document.getElementById('cascade-note');csn.textContent=futureText;csn.style.display='block'}
+  updateBars();updateSb();
+  document.getElementById('confirm-btn').style.display='none';
+  document.querySelectorAll('.option-btn').forEach(b=>b.disabled=true);
+  const total=S.res.safety+S.res.time+S.res.focus;
+  const isLast=S.scIdx>=SCENARIOS.length-1;
+  const nb=document.getElementById('next-btn');
+  if(S.res.safety<=0||S.res.time<=0||S.res.focus<=0||total<=0){nb.textContent='View Debrief';nb.onclick=()=>showDebrief(false)}
+  else if(isLast){nb.textContent='View Debrief';nb.onclick=()=>showDebrief(true)}
+  else{nb.textContent='Next Scenario';nb.onclick=nextSc}
+  nb.style.display='inline-block';
+}
+
+function nextSc(){S.scIdx++;if(S.scIdx>=SCENARIOS.length)showDebrief(true);else renderSc()}
+
+function startTimer(){
+  S.timerSec=60;S.timerExp=false;
+  document.getElementById('timer-wrap').style.display='flex';
+  tickTimer();
+  S.timer=setInterval(()=>{S.timerSec--;tickTimer();if(S.timerSec<=0){killTimer();S.timerExp=true;const cb=document.getElementById('confirm-btn');cb.textContent='Time\'s up - apply decision';cb.disabled=false;cb.className='btn btn-danger'}},1000);
+}
+function tickTimer(){
+  const s=S.timerSec;
+  document.getElementById('timer-num').textContent=s;
+  const offset=138.23*(1-s/60);
+  document.getElementById('timer-ring').setAttribute('stroke-dashoffset',offset);
+  const col=s>20?'var(--time)':s>8?'var(--warning)':'var(--danger)';
+  document.getElementById('timer-ring').setAttribute('stroke',col);
+  document.getElementById('timer-num').style.color=col;
+}
+function killTimer(){if(S.timer){clearInterval(S.timer);S.timer=null}}
+
+function updateBars(){
+  const r=S.res;
+  [
+    {valId:'rv-safety',barId:'rb-safety',cardId:'res-card-safety',val:r.safety,max:RESOURCE_MAX.safety},
+    {valId:'rv-time',  barId:'rb-time',  cardId:'res-card-time',  val:r.time,  max:RESOURCE_MAX.time},
+    {valId:'rv-focus', barId:'rb-focus', cardId:'res-card-focus', val:r.focus, max:RESOURCE_MAX.focus}
+  ].forEach(({valId,barId,cardId,val,max})=>{
+    document.getElementById(valId).textContent=val;
+    const pct=Math.max(0,val/max*100);
+    document.getElementById(barId).style.width=pct+'%';
+    const card=document.getElementById(cardId);
+    if(card){
+      if(val<=Math.ceil(max*0.25)&&val>0){card.classList.add('res-danger')}
+      else{card.classList.remove('res-danger')}
+    }
+  });
+}
+
+function updateSb(){
+  const sb=document.getElementById('scoreboard');
+  sb.style.display='block';
+  const my=S.res.safety+S.res.time+S.res.focus;
+  const all=[{name:S.teamName,s:my,me:true},...S.others].sort((a,b)=>b.s-a.s);
+  document.getElementById('score-rows').innerHTML=all.map((t,i)=>`<div class="score-row${t.me?' active-team':''}"><span>${i+1}. ${t.name}${t.me?' (you) ★':''}</span><span style="font-weight:700">${t.s}/50</span></div>`).join('');
+}
+
+function showDebrief(success){
+  killTimer();
+  const r=S.res;const total=r.safety+r.time+r.focus;
+  const hasProject=S.flags.includes('project_complete');
+  const hasIncident=S.flags.includes('project_incident')||S.flags.includes('gas_crisis')||S.flags.includes('collapse_incident');
+  let icon,title,sub;
+  if(r.safety<=0||r.time<=0||r.focus<=0||total<=0){icon='';title='Project Failed - Gas Exhausted';sub='The accumulated cost of the team\'s gas decisions exceeded what the system would allow. In cave diving, gas mathematics are the only mathematics that matter.'}
+  else if(hasIncident&&total<28){icon='';title='Project Aborted - Diver Incident';sub='The team surfaced. But not all objectives were achieved and the incident that ended the project was rooted in a decision made before the crisis became visible.'}
+  else if(hasProject&&total>=40){icon='';title='Project Sac Actun Complete';sub='The terminal chamber was mapped. New passages documented. The decisions made under total darkness and confined water created the margins that made every discovery possible safely.'}
+  else if(hasProject&&total>=28){icon='';title='Sac Actun Complete - At Significant Cost';sub='The project was completed, but the team paid for decisions made in the early dives. Reflect on what the gas logs reveal about the relationship between early choices and late consequences.'}
+  else{icon='';title='Surfaced - Project Incomplete';sub='The team surfaced safely. Not all objectives were achieved. The decisions from Days 1, 5 and 14 shaped what became possible in the unmapped system.'}
+  document.getElementById('db-icon').textContent=icon;
+  document.getElementById('db-title').textContent=title;
+  document.getElementById('db-sub').textContent=sub;
+  document.getElementById('fs-safety').textContent=r.safety;
+  document.getElementById('fs-time').textContent=r.time;
+  document.getElementById('fs-focus').textContent=r.focus;
+  let narr=`Your team finished with ${total} out of 50 points - Safety: ${r.safety}/20, Gas: ${r.time}/15, Cohesion: ${r.focus}/15.\n\n`;
+  if(S.flags.includes('kit_compromised'))narr+='The decision to dismiss equipment concerns on Day 1 created latent vulnerabilities that the cave system exploited at depth, when correction was hardest and consequences largest. ';
+  if(S.flags.includes('guideline_split'))narr+='The decision to split the primary guideline at the T-junction on Day 5 violated the most basic principle of cave diving navigation. An improvised guideline solution in an unmapped system is not a solution - it is a deferred incident. ';
+  if(S.flags.includes('psych_fixation'))narr+='Dismissing task fixation on Day 22 allowed the most preventable cave diving risk factor to degrade decision quality through the expedition\'s most demanding phase. ';
+  if(S.flags.includes('chamber_overstay'))narr+='Overstaying the gas plan at the terminal chamber prioritised discovery over survival margin - a choice that made the most consequential moment of the expedition the most dangerous. ';
+  if(S.flags.includes('project_complete'))narr+='The project was completed - the product of gas discipline, guideline protocol, and a team that understood that in cave diving the rules are written in the fatality records of those who broke them. ';
+  if(S.flags.includes('chamber_documented'))narr+='The terminal chamber documentation was one of the most significant cave diving discoveries in the Yucatan in a generation. The discipline to document it safely, rather than exhaustively, was what made the discovery permanent. ';
+  document.getElementById('db-narrative').textContent=narr;
+  document.getElementById('db-log').innerHTML=S.log.map(d=>`<div class="log-item"><span class="log-day">Day ${d.day}</span><span class="log-text">${d.label}</span><span class="log-impact ${d.tone}">${d.impact>0?'+':''}${d.impact}</span></div>`).join('');
+  const archs=[...new Set(S.players.map(p=>{const a=ARCHETYPES.find(x=>x.id===p.arch);return a?a.name:null}).filter(Boolean))];
+  document.getElementById('db-psych').textContent=`Your team brought the following archetypes: ${archs.join(', ')}. Cave diving creates a unique psychological test: every decision is made in darkness, in confinement, with no margin for optimism. The archetypes that perform well in open water often struggle underground - the Explorer's instinct to push further, the Energiser's drive to maintain momentum - these become liabilities when the passage is 30 metres below the surface and 1,400 metres from the exit. Notice which team archetypes created the safety margins that made exploration possible and which ones required the most active management. The decisions that defined this project were the quiet ones: the equipment check on Day 1, the guideline call on Day 5, the task fixation debrief on Day 22.`;
+  goTo('screen-debrief');
+}
+
+function resetGame(){
+  killTimer();
+  S={teamName:'Team Sac Actun',playerCount:6,players:[],curPlayer:0,res:getStartingResources(),scIdx:0,selected:null,flags:[],log:[],timer:null,timerSec:60,timerExp:false,gameOver:false,others:[],callerIdx:0};
+  document.getElementById('player-count-input').value=6;renderPlayerFields();
+  goTo('screen-landing');
+}
+
+function confirmStopExpedition(){
+  if(confirm('Stop the expedition and view your results so far?'))showDebrief(false);
+}
+
+const REPORT_CONFIG={
+  expedition:'Abyss Protocol',
+  subtitle:'Sistema Sac Actun, Quintana Roo, Mexico — February 2024',
+  duration:'30 days',
+  res2name:'Gas',res3name:'Cohesion',
+  accentColor:'#38c4d4',accent2Color:'#2a9baa',
+  medical:[
+    {title:'Gas Management & The Rule of Thirds',content:'The Rule of Thirds is non-negotiable in cave diving: one third of gas for the outbound dive, one third for the return, one third as emergency reserve. Any diver reaching the one-third turn point must turn back regardless of objective proximity. Running low on gas at depth is rarely a single-event failure — it is the compounding result of incremental optimism across multiple decisions. Operational procedure: each diver independently verifies gas thirds before penetration; verbal confirmation with buddy at turn point is mandatory; no further penetration is permitted after the turn point has been reached. Gas plans are filed before every dive and are not modified underwater.'},
+    {title:'Nitrogen Narcosis',content:'Narcosis is depth-dependent, typically significant below 30 metres, and is amplified in cave environments by anxiety, darkness, and elevated CO2. Symptoms include impaired judgement, overconfidence, euphoria, slowed reaction time, and tunnel vision — all particularly dangerous in confined passages. Operational procedure: all divers complete a pre-dive cognitive self-assessment; any diver reporting unusual affect or impaired thinking does not increase depth; buddy pairs conduct reciprocal checks every 10 minutes at depth; task complexity is reduced immediately when any team member is operating below optimal function. No diver solo-decides their own fitness at depth.'},
+    {title:'Hypercapnia (Carbon Dioxide Buildup)',content:'CO2 can accumulate in enclosed air pockets and from skip breathing (deliberate breath-rate reduction to conserve gas). Symptoms include headache, shortness of breath, increased respiratory rate, anxiety, and in severe cases, loss of consciousness. Skip breathing is prohibited under any circumstances — it dramatically elevates CO2 while providing only marginal gas savings. Air pockets in cave systems must never be assumed breathable. Operational procedure: all air pockets are assessed with a CO2 sensor before sustained breathing; any diver showing signs of respiratory distress exits the system immediately on their buddy\'s arm; the entire team aborts the dive if CO2 symptoms present in two or more divers.'},
+    {title:'Silt-Out & Guideline Loss Protocol',content:'Zero visibility occurs when silt is disturbed from passage floors or walls. Without guideline contact, complete spatial disorientation can occur within seconds. Recovery procedure: Stop all movement immediately. Locate the guideline by touch — methodical outward hand-sweep, not random swimming. Once found, maintain three-point contact. Navigate out hand-over-hand at a controlled pace. Prevention: zero-disturb protocol in any section showing disturbed silt; single-file movement with frog-kick or modified back-kick; no turning in narrow passages without silt impact assessment. A lost guideline at depth is a life-threatening emergency — treat it as one from the first second.'},
+    {title:'Decompression Sickness (DCS)',content:'DCS occurs when dissolved nitrogen forms bubbles in tissues or blood during ascent. In cave diving, interrupted decompression stops — forced by gas emergency or guideline loss — dramatically increase risk. Symptoms include joint pain, neurological deficits, skin mottling, respiratory distress, and extreme fatigue. Operational procedure: decompression stops are non-negotiable and gas plans are built to include all stops before penetration begins; if a gas emergency forces a shortened ascent, treat as suspected DCS regardless of symptom presentation; the nearest hyperbaric chamber is confirmed before any dive project begins; evacuation plan with chamber transport is written and known by every team member.'}
+  ],
+  leadership:[
+    {title:'Equipment Verification Protocol',content:'All technical equipment is verified independently by each diver and cross-checked by their buddy before water entry. Known deficiencies are resolved — not managed around — before diving begins. The lead safety diver has uncontested authority to abort any dive on equipment grounds; this authority is never questioned or overridden by project timeline pressure. A diver who accepts a known equipment deficiency has already made their most consequential decision of the day.'},
+    {title:'T-Junction & Guideline Management',content:'An unmapped T-junction with a single guideline reel is an unacceptable risk configuration. The professional procedure is to surface, precisely log the junction coordinates, and return with a dedicated reel for each passage. Improvising with split reels or extended penetration beyond planned line is not adaptive problem-solving — it is the most common precursor to guideline-related fatalities. Rule: one passage, one reel, one objective per dive.'},
+    {title:'Pre-Agreed Abort Decision Authority',content:'The decision to abort is pre-agreed before water entry — it is not negotiated at depth. Any team member can call an abort at any time without explanation or challenge; the team\'s response is to comply immediately, surface safely, and debrief above water. The STOP rule applies to all decisions made under pressure: Stop movement. Think clearly. Observe the situation. Plan the response. Never make a consequential decision while swimming.'},
+    {title:'Task Fixation & Psychological Awareness',content:'Task fixation — becoming so focused on an objective that safety margins are progressively eroded — is the dominant psychological factor in cave diving fatalities. It manifests as: lingering beyond the gas turn point, continuing past planned penetration depth, overlooking buddy signals, and minimising known risks. Prevention requires explicit pre-dive briefing on the task fixation risk; a designated team member whose role is to call time and gas checks regardless of objective progress; and a written abort rule that is followed even when the objective is tantalizingly close.'}
+  ]
+};
+
+function generatePDFReport(){
+  const r=S.res;const total=r.safety+r.time+r.focus;
+  const dateStr=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  const archLines=S.players.map(p=>{const a=ARCHETYPES.find(x=>x.id===p.arch);return`<div class="tmb"><span class="tarch">${a?a.name:'—'}</span><span class="tname">${p.name}</span><span class="tdesc">${a?a.tagline:''}</span></div>`}).join('');
+  const decRows=S.log.map(d=>`<tr><td>Day ${d.day}</td><td>${d.label}</td><td class="${d.tone}">${d.impact>0?'+':''}${d.impact}</td></tr>`).join('');
+  const medHtml=REPORT_CONFIG.medical.map(m=>`<div class="section"><h3>${m.title}</h3><p>${m.content}</p></div>`).join('');
+  const ldHtml=REPORT_CONFIG.leadership.map(l=>`<div class="section"><h3>${l.title}</h3><p>${l.content}</p></div>`).join('');
+  const ac=REPORT_CONFIG.accentColor;const a2=REPORT_CONFIG.accent2Color;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Expedition Report — ${REPORT_CONFIG.expedition}</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',Georgia,serif;font-size:11pt;color:#1a1a2e;line-height:1.72;background:#fff}
+.page{max-width:210mm;margin:0 auto;padding:14mm 18mm}
+h1{font-family:'Space Grotesk',sans-serif;font-size:26pt;font-weight:700;letter-spacing:-0.02em;color:#0d1117;margin-bottom:3px}
+h2{font-family:'Space Grotesk',sans-serif;font-size:13pt;font-weight:700;color:#0d1117;margin:22px 0 10px;padding-bottom:6px;border-bottom:2px solid #e4e4ee}
+h3{font-family:'Space Grotesk',sans-serif;font-size:10.5pt;font-weight:600;color:#1a1a2e;margin:0 0 6px}
+p{margin-bottom:10px;color:#2a2a3e;font-size:10pt}
+.eyebrow{font-family:'Space Grotesk',sans-serif;font-size:7.5pt;letter-spacing:0.22em;text-transform:uppercase;color:#999;margin-bottom:5px}
+.accent{color:${ac}}
+.rule{width:36px;height:3px;background:${ac};margin:10px 0 14px;border-radius:2px}
+.subtitle{font-size:10pt;color:#555;margin-bottom:2px}
+.meta-row{display:flex;gap:20px;flex-wrap:wrap;margin:14px 0;padding:12px 16px;background:#f7f8fc;border-radius:6px;border:1px solid #e8e8f0}
+.mi .label{font-family:'Space Grotesk',sans-serif;font-size:7pt;text-transform:uppercase;letter-spacing:0.12em;color:#999;margin-bottom:3px}
+.mi .val{font-weight:600;font-size:11pt;color:#1a1a2e}
+.sgrid{display:flex;gap:14px;margin:14px 0}
+.sc{flex:1;padding:14px 18px;border-radius:7px;border:1px solid #e8e8f0;text-align:center}
+.sc .slabel{font-family:'Space Grotesk',sans-serif;font-size:7pt;text-transform:uppercase;letter-spacing:0.12em;color:#999;margin-bottom:7px}
+.sc .sval{font-family:'Space Grotesk',sans-serif;font-size:24pt;font-weight:700}
+.sc .sdenom{font-size:8pt;color:#999;margin-top:3px}
+.sv-s{color:#dc4f4f}.sv-t{color:${ac}}.sv-f{color:${a2}}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:9.5pt}
+th{font-family:'Space Grotesk',sans-serif;font-size:7.5pt;text-transform:uppercase;letter-spacing:0.1em;color:#999;padding:7px 10px;border-bottom:2px solid #e8e8f0;text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.55}
+tr:last-child td{border-bottom:none}
+.good{color:#2d9e6a;font-weight:600}.ok{color:#c07030;font-weight:600}.bad{color:#c0303a;font-weight:600}
+.section{margin-bottom:12px;padding:12px 16px;background:#f9fafb;border-radius:5px;border-left:3px solid ${ac}}
+.tmb{display:flex;gap:10px;padding:7px 12px;background:#f7f8fc;border-radius:4px;margin-bottom:5px;align-items:baseline;font-size:9.5pt}
+.tarch{font-weight:600;color:${ac};min-width:110px;font-family:'Space Grotesk',sans-serif}
+.tname{color:#333;min-width:90px}
+.tdesc{color:#888;font-size:8.5pt}
+.disc{font-size:7.5pt;color:#bbb;margin-top:22px;padding-top:14px;border-top:1px solid #e8e8f0;line-height:1.6}
+@media print{body{font-size:9.5pt}.page{padding:8mm 12mm}h2{page-break-after:avoid}.section{page-break-inside:avoid}.sgrid{page-break-inside:avoid}}
+</style></head><body><div class="page">
+<div class="eyebrow">The Expedition Game — Post-Expedition Report</div>
+<h1><span class="accent">${REPORT_CONFIG.expedition}</span></h1>
+<div class="subtitle">${REPORT_CONFIG.subtitle}</div>
+<div class="rule"></div>
+<div class="meta-row">
+  <div class="mi"><div class="label">Team</div><div class="val">${S.teamName}</div></div>
+  <div class="mi"><div class="label">Expedition</div><div class="val">${REPORT_CONFIG.duration}</div></div>
+  <div class="mi"><div class="label">Total Score</div><div class="val">${total} / 50</div></div>
+  <div class="mi"><div class="label">Report Date</div><div class="val">${dateStr}</div></div>
+</div>
+<h2>Final Results</h2>
+<div class="sgrid">
+  <div class="sc"><div class="slabel">Safety</div><div class="sval sv-s">${r.safety}</div><div class="sdenom">/ 20</div></div>
+  <div class="sc"><div class="slabel">${REPORT_CONFIG.res2name}</div><div class="sval sv-t">${r.time}</div><div class="sdenom">/ 15</div></div>
+  <div class="sc"><div class="slabel">${REPORT_CONFIG.res3name}</div><div class="sval sv-f">${r.focus}</div><div class="sdenom">/ 15</div></div>
+</div>
+<h2>Team &amp; Archetypes</h2>
+${archLines||'<p style="color:#999">Solo play — no team archetypes recorded.</p>'}
+<h2>Decision Log</h2>
+<p style="font-size:9pt;color:#777;margin-bottom:8px">Each decision made during the expedition and its recorded impact on Safety, ${REPORT_CONFIG.res2name}, and ${REPORT_CONFIG.res3name}.</p>
+<table><thead><tr><th>Day</th><th>Decision Record</th><th>Impact</th></tr></thead><tbody>${decRows||'<tr><td colspan="3" style="color:#999">No decisions recorded.</td></tr>'}</tbody></table>
+<h2>Expedition Medicine — Protocols &amp; Operating Procedures</h2>
+<p style="font-size:9pt;color:#777;margin-bottom:10px">Current best practice for the medical and physiological challenges encountered in this expedition environment. For educational and training use.</p>
+${medHtml}
+<h2>Expedition Leadership — Operating Principles</h2>
+<p style="font-size:9pt;color:#777;margin-bottom:10px">Leadership behaviours that define safe and effective performance in this expedition context.</p>
+${ldHtml}
+<div class="disc">Generated by The Expedition Game · ${REPORT_CONFIG.expedition} · ${dateStr} · Medical protocols are for educational purposes only. In real expedition situations, consult qualified medical personnel and follow your organisation's established procedures.</div>
+</div></body></html>`;
+  const w=window.open('','_blank','width=960,height=760');
+  if(!w){alert('Allow popups to download the report.');return;}
+  w.document.write(html);w.document.close();w.focus();
+  setTimeout(()=>{try{w.print()}catch(e){}},900);
+}
+
+(function initVisuals(){
+  const _goTo=goTo;
+  window.goTo=function(id){
+    _goTo(id);
+    const cv=document.getElementById('universe-canvas');
+    const dh=document.getElementById('debrief-header-block');
+    cv.style.display=(id==='screen-landing')?'block':'none';
+    const nav=document.getElementById('fixed-nav');
+    const fnHome=document.getElementById('fn-home');
+    const fnStop=document.getElementById('fn-stop');
+    if(id==='screen-landing'){nav.style.display='none'}
+    else if(id==='screen-game'){nav.style.display='flex';fnHome.style.display='none';fnStop.style.display='inline-block'}
+    else{nav.style.display='flex';fnHome.style.display='inline-block';fnStop.style.display='none'}
+    if(id==='screen-debrief'){
+      setTimeout(()=>animateScores(),350);
+      const title=document.getElementById('db-title').textContent||'';
+      if(title.toLowerCase().includes('complete')&&!title.toLowerCase().includes('significant')){
+        dh.classList.add('summit-win');
+        setTimeout(()=>launchConfetti(),600);
+      }else{
+        dh.classList.remove('summit-win');
+      }
+    }
+  };
+
+  function animateScores(){
+    [
+      {elId:'fs-safety',max:RESOURCE_MAX.safety},
+      {elId:'fs-time',max:RESOURCE_MAX.time},
+      {elId:'fs-focus',max:RESOURCE_MAX.focus}
+    ].forEach(({elId,max})=>{
+      const el=document.getElementById(elId);
+      if(!el)return;
+      const target=parseInt(el.textContent)||0;
+      el.textContent='0';
+      let cur=0;
+      const steps=36;
+      const inc=target/steps;
+      let tick=0;
+      const iv=setInterval(()=>{
+        tick++;cur=Math.min(cur+inc,target);
+        el.textContent=Math.round(cur);
+        if(tick>=steps){clearInterval(iv);el.textContent=target}
+      },28);
+    });
+  }
+
+  function launchConfetti(){
+    const colors=['#38c4d4','#5cd8e8','#88dde8','#ffffff','#2a9baa','#c0f0f8'];
+    for(let i=0;i<80;i++){
+      const dot=document.createElement('div');
+      dot.className='confetti-dot';
+      const c=colors[Math.floor(Math.random()*colors.length)];
+      const x=Math.random()*100;
+      const dur=1.8+Math.random()*2;
+      const delay=Math.random()*1.2;
+      const size=4+Math.random()*6;
+      dot.style.cssText=`left:${x}vw;top:-10px;width:${size}px;height:${size}px;background:${c};animation-duration:${dur}s;animation-delay:${delay}s;border-radius:${Math.random()>0.5?'50%':'2px'}`;
+      document.body.appendChild(dot);
+      setTimeout(()=>dot.remove(),(dur+delay)*1000+400);
+    }
+  }
+
+  const canvas=document.getElementById('universe-canvas');
+  const ctx=canvas.getContext('2d');
+  let pts=[],rafId,rotY=0,rotX=0.18;
+
+  function resize(){
+    canvas.width=window.innerWidth;
+    canvas.height=window.innerHeight;
+    buildPts();
+  }
+
+  function buildPts(){
+    pts=[];
+    const n=220;
+    for(let i=0;i<n;i++){
+      const phi=Math.acos(1-2*(i+0.5)/n);
+      const theta=Math.PI*(1+Math.sqrt(5))*i;
+      const r=0.88+Math.random()*0.12;
+      pts.push({
+        nx:r*Math.sin(phi)*Math.cos(theta),
+        ny:r*Math.sin(phi)*Math.sin(theta),
+        nz:r*Math.cos(phi),
+        size:Math.random()*2.2+0.3,
+        alpha:Math.random()*0.55+0.45,
+        pulse:Math.random()*Math.PI*2,
+        pSpd:Math.random()*0.022+0.007
+      });
+    }
+  }
+
+  function project(nx,ny,nz,radius,cx,cy){
+    const cy_=Math.cos(rotY),sy=Math.sin(rotY);
+    const x1=nx*cy_-nz*sy;
+    const z1=nx*sy+nz*cy_;
+    const cx_=Math.cos(rotX),sx=Math.sin(rotX);
+    const y1=ny*cx_-z1*sx;
+    const z2=ny*sx+z1*cx_;
+    const fov=900;
+    const sc=fov/(fov+z2*radius);
+    return{sx:cx+x1*radius*sc,sy:cy+y1*radius*sc,sz:z2,sc};
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    rotY+=0.0016;
+
+    const cx=canvas.width/2,cy=canvas.height/2;
+    const radius=Math.min(canvas.width,canvas.height)*0.31;
+
+    const projected=pts.map(p=>{
+      const pj=project(p.nx,p.ny,p.nz,radius,cx,cy);
+      p.pulse+=p.pSpd;
+      const tw=0.78+0.22*Math.sin(p.pulse);
+      const depth=(pj.sz+1)/2;
+      return{sx:pj.sx,sy:pj.sy,sz:pj.sz,
+        size:p.size*pj.sc,
+        a:p.alpha*depth*tw,depth};
+    }).sort((a,b)=>a.sz-b.sz);
+
+    ctx.save();
+    for(let i=0;i<projected.length;i++){
+      for(let j=i+1;j<projected.length;j++){
+        const dx=projected[i].sx-projected[j].sx;
+        const dy=projected[i].sy-projected[j].sy;
+        const d2=dx*dx+dy*dy;
+        if(d2<52*52){
+          const d=Math.sqrt(d2);
+          const alpha=(1-d/52)*0.085*Math.min(projected[i].depth,projected[j].depth);
+          ctx.strokeStyle=`rgba(40,180,200,${alpha})`;
+          ctx.lineWidth=0.5;
+          ctx.beginPath();
+          ctx.moveTo(projected[i].sx,projected[i].sy);
+          ctx.lineTo(projected[j].sx,projected[j].sy);
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+
+    projected.forEach(p=>{
+      if(p.a<0.015)return;
+      if(p.size>1.4){
+        const gr=ctx.createRadialGradient(p.sx,p.sy,0,p.sx,p.sy,p.size*3.8);
+        gr.addColorStop(0,`rgba(180,235,248,${p.a*0.38})`);
+        gr.addColorStop(1,`rgba(180,235,248,0)`);
+        ctx.fillStyle=gr;
+        ctx.beginPath();
+        ctx.arc(p.sx,p.sy,p.size*3.8,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.fillStyle=`rgba(200,245,255,${p.a})`;
+      ctx.beginPath();
+      ctx.arc(p.sx,p.sy,Math.max(p.size,0.28),0,Math.PI*2);
+      ctx.fill();
+    });
+
+    const ag=ctx.createRadialGradient(cx,cy,0,cx,cy,radius*0.55);
+    ag.addColorStop(0,'rgba(30,160,180,0.05)');
+    ag.addColorStop(1,'rgba(30,160,180,0)');
+    ctx.fillStyle=ag;
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius*0.55,0,Math.PI*2);
+    ctx.fill();
+
+    rafId=requestAnimationFrame(draw);
+  }
+
+  function startCanvas(){if(!rafId){resize();draw()}}
+  function stopCanvas(){if(rafId){cancelAnimationFrame(rafId);rafId=null}}
+
+  window.addEventListener('resize',()=>{if(canvas.style.display!=='none')resize()});
+
+  document.addEventListener('mousemove',e=>{
+    const lnd=document.getElementById('screen-landing');
+    if(!lnd.classList.contains('active'))return;
+    const hc=lnd.querySelector('.hero-content');
+    if(!hc)return;
+    const mx=(e.clientX/window.innerWidth-0.5)*16;
+    const my=(e.clientY/window.innerHeight-0.5)*8;
+    hc.style.transform=`translate(${mx}px,${my}px)`;
+  });
+
+  startCanvas();
+})();
+</script>
+<script src="assets/footer.js"></script>
+<script>window.renderExpeditionFooter();</script>
+</body>
+</html>

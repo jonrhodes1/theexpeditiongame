@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Arctic placeholder artwork</title>
+  <desc id="desc">Ice-packed polar scene with northern lights in a dark sky.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#061021"/>
+      <stop offset="45%" stop-color="#0b1f3d"/>
+      <stop offset="100%" stop-color="#16304e"/>
+    </linearGradient>
+    <linearGradient id="auroraA" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#5ef7c8" stop-opacity=".05"/>
+      <stop offset="45%" stop-color="#8affdf" stop-opacity=".48"/>
+      <stop offset="100%" stop-color="#8db4ff" stop-opacity=".04"/>
+    </linearGradient>
+    <linearGradient id="auroraB" x1="1" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#70e0ff" stop-opacity=".06"/>
+      <stop offset="52%" stop-color="#4ef0b6" stop-opacity=".34"/>
+      <stop offset="100%" stop-color="#d7f3ff" stop-opacity=".02"/>
+    </linearGradient>
+    <linearGradient id="ice" x1="0" x2="0.8" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f5fbff"/>
+      <stop offset="100%" stop-color="#9ec5de"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <path d="M-100 260C140 170 290 360 520 270s320-160 520-60 380 40 660-70v230H-100z" fill="url(#auroraA)"/>
+  <path d="M-50 190C210 120 340 260 640 200s330-140 560-40 360 90 520 40v250H-50z" fill="url(#auroraB)"/>
+  <g fill="#ffffff" opacity=".75">
+    <circle cx="190" cy="120" r="2.1"/>
+    <circle cx="350" cy="92" r="1.9"/>
+    <circle cx="610" cy="130" r="1.8"/>
+    <circle cx="980" cy="82" r="2.2"/>
+    <circle cx="1180" cy="132" r="1.9"/>
+    <circle cx="1450" cy="100" r="1.7"/>
+  </g>
+  <path d="M0 620L220 520L430 620L640 540L840 650L1060 560L1260 650L1450 590L1600 660V1000H0z" fill="#d8edf8"/>
+  <path d="M0 700L140 655L260 720L430 640L600 760L770 685L950 770L1100 690L1310 780L1490 720L1600 760V1000H0z" fill="#b2d2e4"/>
+  <g fill="url(#ice)" opacity=".96">
+    <polygon points="80,665 290,620 460,700 220,735"/>
+    <polygon points="360,635 620,585 770,665 520,735"/>
+    <polygon points="710,690 940,635 1110,725 840,790"/>
+    <polygon points="1020,630 1290,585 1495,685 1230,748"/>
+    <polygon points="40,775 250,740 390,810 150,855"/>
+    <polygon points="470,770 690,730 850,815 600,865"/>
+    <polygon points="930,790 1180,740 1370,840 1090,890"/>
+  </g>
+</svg>
