@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breakpoint - The Expedition Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --void:#060910;
+  --deep:#0b1020;
+  --surface:rgba(10,15,30,0.94);
+  --surface2:rgba(16,24,46,0.88);
+  --glass:rgba(255,255,255,0.032);
+  --border:rgba(255,255,255,0.07);
+  --border-hi:rgba(255,255,255,0.14);
+  --text:#edf0f8;
+  --muted:#6070a0;
+  --accent:#4eb5d4;
+  --accent-hi:#6dcde8;
+  --blue:#4a9ece;
+  --blue-hi:#65b8f0;
+  --danger:#dc4f4f;
+  --success:#3dba7a;
+  --warning:#d4873a;
+  --stability:#dc4f4f;
+  --awareness:#4a9ece;
+  --cohesion:#3dba7a;
+  --r:12px;
+  --r-lg:20px;
+}
+
+html{scroll-behavior:smooth}
+body{background:var(--void);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;font-size:15px;line-height:1.65}
+
+.screen{display:none}
+.screen.active{display:block;animation:screenIn 0.55s cubic-bezier(0.16,1,0.3,1) both}
+#screen-landing.active{display:flex !important;animation:landingIn 1s ease both}
+
+@keyframes screenIn{from{opacity:0;transform:translateY(18px) scale(0.99)}to{opacity:1;transform:none}}
+@keyframes landingIn{from{opacity:0}to{opacity:1}}
+
+#universe-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none}
+
+#screen-landing{position:fixed;inset:0;z-index:40;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:var(--void)}
+
+.shell{position:relative;z-index:20;background:var(--void);width:100%;max-width:860px;margin:0 auto;padding:0 18px 80px;min-height:100vh}
+
+.hero-bg{position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1920&q=80');background-size:cover;background-position:center 38%;opacity:0.13;z-index:0}
+.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(6,9,16,0.2) 0%,rgba(6,9,16,0.05) 35%,rgba(6,9,16,0.5) 75%,rgba(6,9,16,1) 100%)}
+
+.hero-content{position:relative;z-index:4;text-align:center;max-width:680px;padding:0 28px}
+.hero-eyebrow{font-family:'Space Grotesk',sans-serif;font-size:0.68rem;font-weight:500;letter-spacing:0.28em;text-transform:uppercase;color:var(--accent);margin-bottom:24px;opacity:0.85}
+.hero-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(4rem,11vw,9rem);font-weight:700;line-height:0.9;letter-spacing:-0.025em;color:var(--text);margin-bottom:10px}
+.hero-title .ice{color:var(--accent)}
+.hero-rule{width:36px;height:2px;background:var(--accent);margin:22px auto;border-radius:1px}
+.hero-sub{font-family:'Space Grotesk',sans-serif;font-size:0.72rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-bottom:36px}
+.hero-desc{font-size:1.02rem;line-height:1.88;color:rgba(237,240,248,0.68);max-width:500px;margin:0 auto 30px}
+.hero-meta{font-family:'Space Grotesk',sans-serif;font-size:0.72rem;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-bottom:38px}
+.hero-meta span{margin:0 12px}
+
+.btn-hero{display:inline-block;background:var(--accent);color:#07090f;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;padding:15px 44px;border:none;border-radius:2px;cursor:pointer;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden}
+.btn-hero::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0.12);opacity:0;transition:opacity 0.2s}
+.btn-hero:hover::after{opacity:1}
+.btn-hero:hover{transform:translateY(-3px);box-shadow:0 14px 44px rgba(78,181,212,0.28)}
+
+.pw-gate{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:36px}
+.pw-gate-form{display:flex;gap:10px;align-items:center}
+.pw-gate-input{height:44px;padding:0 16px;width:190px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14);border-radius:2px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:0.88rem;letter-spacing:0.1em;text-align:center;outline:none;transition:border-color 0.2s}
+.pw-gate-input:focus{border-color:var(--accent)}
+.pw-gate-input.pw-err{border-color:var(--danger);animation:pw-shake 0.32s ease}
+.pw-gate-submit{height:44px;padding:0 22px;background:transparent;border:1px solid var(--accent);border-radius:2px;color:var(--accent);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.76rem;letter-spacing:0.13em;text-transform:uppercase;cursor:pointer;transition:background 0.2s}
+.pw-gate-submit:hover{background:rgba(78,181,212,0.1)}
+.pw-gate-hint{font-size:0.72rem;color:var(--muted);letter-spacing:0.04em}
+.pw-gate-error{font-size:0.76rem;color:var(--danger);min-height:1em}
+@keyframes pw-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px 36px;margin-bottom:20px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.card h1{font-size:1.75rem;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:-0.015em}
+.card h2{font-size:1.3rem;font-weight:600;margin-bottom:14px;letter-spacing:-0.01em}
+.card h3{font-size:0.96rem;font-weight:600;color:var(--accent);margin-bottom:12px;letter-spacing:0.01em}
+.card p{color:rgba(237,240,248,0.74);margin-bottom:14px;line-height:1.82}
+.card p:last-child{margin-bottom:0}
+
+.card.photo-card{padding:0;overflow:hidden}
+.card-photo{width:100%;height:220px;object-fit:cover;display:block;opacity:0.65;transition:opacity 0.3s}
+.card-photo:hover{opacity:0.72}
+.photo-body{padding:28px 36px 32px}
+
+.game-header{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:18px;backdrop-filter:blur(14px)}
+.logo{font-family:'Space Grotesk',sans-serif;font-size:1.02rem;font-weight:700;color:var(--accent);letter-spacing:0.04em}
+.subtitle{font-size:0.72rem;color:var(--muted);margin-top:2px;letter-spacing:0.03em}
+.hdr-right{font-family:'Space Grotesk',sans-serif;font-size:0.78rem;color:var(--muted);text-align:right}
+
+.resources{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.res-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;backdrop-filter:blur(8px)}
+.res-label{font-family:'Space Grotesk',sans-serif;font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.res-label span{font-weight:700;font-size:1.32rem;color:var(--text);letter-spacing:-0.015em}
+.res-track{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
+.res-fill{height:100%;border-radius:2px;transition:width 0.65s cubic-bezier(0.4,0,0.2,1)}
+.res-fill.stability{background:var(--stability)}
+.res-fill.awareness{background:var(--awareness)}
+.res-fill.cohesion{background:var(--cohesion)}
+
+@keyframes dangerBlink{0%,100%{color:var(--danger);text-shadow:0 0 12px rgba(220,79,79,0.6)}50%{color:#ff8888;text-shadow:0 0 22px rgba(220,79,79,0.9)}}
+.res-danger{border-color:rgba(220,79,79,0.35) !important}
+.res-danger .res-label span{animation:dangerBlink 0.9s ease-in-out infinite}
+
+.caller-banner{display:flex;align-items:center;gap:14px;padding:12px 18px;margin-bottom:18px;background:rgba(78,181,212,0.07);border:1px solid rgba(78,181,212,0.22);border-radius:var(--r)}
+.caller-label{font-family:'Space Grotesk',sans-serif;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);flex-shrink:0}
+.caller-name{font-family:'Space Grotesk',sans-serif;font-size:0.94rem;font-weight:700;color:var(--accent)}
+
+.scenario-body{font-size:1rem;line-height:1.92;color:rgba(237,240,248,0.8);margin-bottom:26px;padding:24px 28px;background:rgba(255,255,255,0.022);border-left:2px solid var(--accent);border-radius:0 var(--r) var(--r) 0;white-space:pre-line}
+
+.tag{font-family:'Space Grotesk',sans-serif;font-size:0.66rem;padding:4px 12px;border-radius:2px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase}
+.tag-day{background:rgba(74,158,206,0.1);color:var(--blue);border:1px solid rgba(74,158,206,0.2)}
+.tag-crisis{background:rgba(220,79,79,0.1);color:var(--danger);border:1px solid rgba(220,79,79,0.22)}
+.tag-summit{background:rgba(78,181,212,0.1);color:var(--accent);border:1px solid rgba(78,181,212,0.22)}
+.tag-normal{background:rgba(255,255,255,0.045);color:var(--muted);border:1px solid var(--border)}
+.tag-phase{background:rgba(78,181,212,0.07);color:var(--accent);border:1px solid rgba(78,181,212,0.18);font-size:0.6rem;letter-spacing:0.14em}
+
+.timer-wrap{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:16px 20px;background:rgba(220,79,79,0.055);border:1px solid rgba(220,79,79,0.18);border-radius:var(--r)}
+.timer-svg{position:relative;width:52px;height:52px;flex-shrink:0}
+.timer-svg svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:rgba(255,255,255,0.07);stroke-width:4}
+.ring-fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 0.9s linear,stroke 0.5s}
+.ring-num{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.06rem}
+.timer-label{font-size:0.8rem;color:var(--muted)}
+.timer-label strong{display:block;color:var(--text);margin-bottom:2px;font-family:'Space Grotesk',sans-serif;font-weight:600}
+
+.options{display:grid;gap:10px;margin-bottom:26px}
+.option-btn{background:var(--glass);border:1px solid var(--border);border-radius:var(--r);padding:17px 22px;cursor:pointer;text-align:left;color:var(--text);transition:all 0.22s cubic-bezier(0.4,0,0.2,1);font-size:0.91rem;line-height:1.66;width:100%;font-family:'Inter',sans-serif}
+.option-btn:hover:not(:disabled){border-color:rgba(78,181,212,0.38);background:rgba(78,181,212,0.04);transform:translateX(4px)}
+.option-btn.selected{border-color:var(--accent);background:rgba(78,181,212,0.055)}
+.option-btn:disabled{opacity:0.42;cursor:default;transform:none}
+.option-letter{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:50%;background:var(--accent);color:#07090f;font-size:0.65rem;font-weight:800;margin-right:12px;font-family:'Space Grotesk',sans-serif;flex-shrink:0;vertical-align:middle}
+
+.outcome-banner{border-radius:var(--r);padding:20px 24px;margin-bottom:20px;font-size:0.91rem;line-height:1.78}
+.outcome-banner.good{background:rgba(61,186,122,0.07);border:1px solid rgba(61,186,122,0.2)}
+.outcome-banner.ok{background:rgba(212,135,58,0.07);border:1px solid rgba(212,135,58,0.2)}
+.outcome-banner.bad{background:rgba(220,79,79,0.07);border:1px solid rgba(220,79,79,0.2)}
+.outcome-banner .pts{font-family:'Space Grotesk',sans-serif;font-weight:600;margin-top:10px;font-size:0.8rem;color:var(--muted)}
+
+.btn{font-family:'Space Grotesk',sans-serif;padding:12px 26px;border:none;border-radius:var(--r);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.24s cubic-bezier(0.4,0,0.2,1);letter-spacing:0.05em;text-transform:uppercase}
+.btn-primary{background:var(--accent);color:#08090f}
+.btn-primary:hover{background:var(--accent-hi);transform:translateY(-2px);box-shadow:0 10px 32px rgba(78,181,212,0.22)}
+.btn-secondary{background:var(--glass);color:var(--text);border:1px solid var(--border-hi)}
+.btn-secondary:hover{background:rgba(255,255,255,0.065)}
+.btn-danger{background:var(--danger);color:white}
+.btn:disabled{opacity:0.32;cursor:default;transform:none !important;box-shadow:none !important}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+
+.scoreboard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:18px}
+.scoreboard h3{color:var(--muted);font-size:0.65rem;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:14px}
+.score-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.87rem}
+.score-row:last-child{border-bottom:none}
+.score-row.active-team{color:var(--accent);font-weight:700}
+
+.decision-log{margin:18px 0}
+.log-item{display:flex;gap:16px;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.81rem}
+.log-day{color:var(--accent);font-weight:700;min-width:52px;font-family:'Space Grotesk',sans-serif}
+.log-text{color:rgba(237,240,248,0.6);flex:1}
+.log-impact{font-weight:600;min-width:52px;text-align:right;font-family:'Space Grotesk',sans-serif}
+.log-impact.good{color:var(--success)}.log-impact.bad{color:var(--danger)}.log-impact.ok{color:var(--warning)}
+
+.debrief-photo-wrap{width:100%;height:260px;position:relative;overflow:hidden;border-radius:var(--r-lg) var(--r-lg) 0 0;margin-bottom:0}
+.debrief-photo{width:100%;height:100%;object-fit:cover;object-position:center 40%;opacity:0.55;display:block}
+.debrief-photo-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(6,9,16,0.3) 0%,rgba(6,9,16,0.85) 100%)}
+
+.debrief-header{text-align:center;padding:52px 20px 40px;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);margin-bottom:20px;backdrop-filter:blur(14px)}
+.result-icon{display:none}
+.debrief-rule{width:32px;height:2px;background:var(--accent);margin:0 auto 20px;border-radius:1px}
+.debrief-header h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:700;margin-bottom:10px;letter-spacing:-0.02em}
+.debrief-header p{color:var(--muted);font-size:0.95rem}
+
+.final-scores{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 20px}
+.final-score-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:26px 20px;text-align:center;backdrop-filter:blur(14px)}
+.final-score-card .label{font-family:'Space Grotesk',sans-serif;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.13em;margin-bottom:12px}
+.final-score-card .val{font-family:'Space Grotesk',sans-serif;font-size:2.6rem;font-weight:700;letter-spacing:-0.025em}
+.val.stability{color:var(--stability)}.val.awareness{color:var(--awareness)}.val.cohesion{color:var(--cohesion)}
+.score-denom{font-family:'Space Grotesk',sans-serif;font-size:0.68rem;color:var(--muted);margin-top:6px}
+
+.narrative-intro{font-size:1rem;line-height:1.9;color:rgba(237,240,248,0.76);padding:24px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:20px 0}
+
+.archetype-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(198px,1fr));gap:10px;margin:20px 0}
+.arch-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--r);padding:18px 16px;cursor:pointer;transition:all 0.22s cubic-bezier(0.4,0,0.2,1)}
+.arch-card:hover{border-color:rgba(78,181,212,0.38);transform:translateY(-2px);background:rgba(78,181,212,0.04)}
+.arch-card.selected{border-color:var(--accent);background:rgba(78,181,212,0.07)}
+.arch-card.taken{opacity:0.28;pointer-events:none}
+.arch-name{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--accent);margin-bottom:6px;font-size:0.9rem}
+.arch-tagline{font-size:0.74rem;color:var(--muted);line-height:1.55}
+
+.team-badge{display:inline-flex;align-items:center;gap:7px;background:var(--glass);border:1px solid var(--border);border-radius:3px;padding:5px 12px;font-size:0.77rem;margin:3px}
+.team-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+
+.cascade-note{font-family:'Space Grotesk',sans-serif;font-size:0.78rem;color:var(--warning);padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px}
+
+input[type=text],input[type=number]{background:rgba(255,255,255,0.038);border:1px solid var(--border-hi);border-radius:8px;padding:11px 16px;color:var(--text);font-size:0.91rem;width:100%;outline:none;transition:border-color 0.2s;font-family:'Inter',sans-serif}
+input[type=text]:focus,input[type=number]:focus{border-color:var(--accent)}
+label{font-family:'Space Grotesk',sans-serif;font-size:0.72rem;color:var(--muted);display:block;margin-bottom:6px;margin-top:16px;text-transform:uppercase;letter-spacing:0.09em}
+
+.setup-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.highlight{color:var(--accent);font-weight:600}
+.muted{color:var(--muted)}
+.text-center{text-align:center}
+.mt-16{margin-top:16px}.mt-24{margin-top:24px}
+
+/* DIRTY DOZEN REVEAL */
+.dd-section-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.dd-count-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:2px;font-family:'Space Grotesk',sans-serif;font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em}
+.dd-count-badge.low{background:rgba(61,186,122,0.1);border:1px solid rgba(61,186,122,0.25);color:var(--success)}
+.dd-count-badge.mid{background:rgba(212,135,58,0.1);border:1px solid rgba(212,135,58,0.25);color:var(--warning)}
+.dd-count-badge.high{background:rgba(220,79,79,0.1);border:1px solid rgba(220,79,79,0.25);color:var(--danger)}
+.dd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin:12px 0}
+.dd-card{border-radius:var(--r);padding:16px 18px;border:1px solid;transition:all 0.2s}
+.dd-card.triggered{background:rgba(220,79,79,0.06);border-color:rgba(220,79,79,0.22)}
+.dd-card.clean{background:rgba(255,255,255,0.015);border-color:var(--border);opacity:0.38}
+.dd-num{font-family:'Space Grotesk',sans-serif;font-size:0.58rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:5px}
+.dd-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.88rem;margin-bottom:6px}
+.dd-card.triggered .dd-name{color:var(--danger)}
+.dd-card.clean .dd-name{color:var(--muted)}
+.dd-desc{font-size:0.77rem;line-height:1.6;color:rgba(237,240,248,0.55);margin-bottom:8px}
+.dd-learning{font-size:0.75rem;line-height:1.58;color:var(--accent);font-style:italic;border-top:1px solid rgba(78,181,212,0.18);padding-top:8px;margin-top:4px}
+.dd-card.clean .dd-learning{display:none}
+.dd-count-tag{display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:2px;background:rgba(220,79,79,0.15);color:var(--danger);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.1em}
+
+.phase-divider{display:flex;align-items:center;gap:12px;margin:24px 0 8px;opacity:0.6}
+.phase-divider::before,.phase-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.phase-divider span{font-family:'Space Grotesk',sans-serif;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--muted)}
+
+@keyframes summitPulse{0%{text-shadow:0 0 0 rgba(78,181,212,0)}50%{text-shadow:0 0 60px rgba(78,181,212,0.3),0 0 120px rgba(78,181,212,0.12)}100%{text-shadow:0 0 0 rgba(78,181,212,0)}}
+.summit-win h1{color:var(--accent);animation:summitPulse 2.5s ease-in-out 0.4s infinite}
+
+.confetti-dot{position:fixed;pointer-events:none;z-index:100;width:6px;height:6px;border-radius:50%;animation:confettiFall linear forwards}
+@keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+
+@media(max-width:600px){
+  .card{padding:22px 18px}
+  .photo-body{padding:22px 18px 28px}
+  .final-scores{grid-template-columns:1fr}
+  .setup-row{grid-template-columns:1fr}
+  .hero-title{font-size:clamp(3.2rem,16vw,5rem)}
+  .resources{grid-template-columns:1fr;gap:8px}
+  .dd-grid{grid-template-columns:1fr}
+}
+
+.fixed-nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:none;gap:8px;z-index:200;align-items:center}
+.fn-btn{font-family:'Space Grotesk',sans-serif;font-size:0.62rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:7px 18px;border-radius:3px;border:1px solid rgba(255,255,255,0.1);background:rgba(6,9,16,0.82);color:rgba(237,240,248,0.5);cursor:pointer;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transition:all 0.2s;white-space:nowrap}
+.fn-btn:hover{color:var(--accent);border-color:rgba(78,181,212,0.3);background:rgba(6,9,16,0.92)}
+.fn-stop{border-color:rgba(220,79,79,0.15)}
+.fn-stop:hover{color:var(--danger) !important;border-color:rgba(220,79,79,0.38) !important}
+</style>
+<link rel="stylesheet" href="assets/footer.css">
+</head>
+<body>
+
+<canvas id="universe-canvas"></canvas>
+
+<div class="fixed-nav" id="fixed-nav">
+  <button class="fn-btn" id="fn-home" onclick="window.location.href='index.html'">&#8592; Home</button>
+  <button class="fn-btn fn-stop" id="fn-stop" style="display:none" onclick="confirmStopExpedition()">Stop Expedition</button>
+</div>
+
+<!-- LANDING -->
+<div id="screen-landing" class="screen active">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">The Expedition Game &nbsp;·&nbsp; Human Factors Series</div>
+    <h1 class="hero-title">BREAK<br><span class="ice">POINT</span></h1>
+    <div class="hero-rule"></div>
+    <div class="hero-sub">Southern Patagonia Icefield &nbsp;&middot;&nbsp; Hielo Sur &nbsp;&middot;&nbsp; 2,400m</div>
+    <p class="hero-desc">Sixty days on one of the world's most remote glacial systems. This is not a survival game. It is a study in how teams come apart and how they hold together when human factors start stacking against them.</p>
+    <div class="pw-gate" id="pw-gate">
+      <form class="pw-gate-form" id="pw-form" onsubmit="checkPassword(event)">
+        <input class="pw-gate-input" id="pw-input" type="password" placeholder="Access code" autocomplete="off" aria-label="Enter access code">
+        <button type="submit" class="pw-gate-submit">Unlock</button>
+      </form>
+      <p class="pw-gate-error" id="pw-gate-error" aria-live="polite"></p>
+      <p class="pw-gate-hint">Password required to enter this expedition</p>
+    </div>
+    <button class="btn-hero" id="btn-begin" style="display:none" onclick="goTo('screen-setup')">Begin Expedition</button>
+  </div>
+</div>
+
+<div class="shell">
+
+<!-- SETUP -->
+<div id="screen-setup" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="card">
+    <h2>Team Setup</h2>
+    <p class="muted">Enter how many players are joining, then name each player. Each will choose their archetype in turn.</p>
+    <div class="setup-row">
+      <div><label for="team-name-input">Team Name</label><input type="text" id="team-name-input" placeholder="e.g. Team Hielo" maxlength="30"></div>
+      <div><label for="player-count-input">Players (1&ndash;9)</label><input type="number" id="player-count-input" min="1" max="9" value="6" oninput="renderPlayerFields()"></div>
+    </div>
+    <div id="player-name-fields" class="mt-16"></div>
+    <div class="btn-row mt-24">
+      <button class="btn btn-secondary" onclick="goTo('screen-landing')">Back</button>
+      <button class="btn btn-primary" onclick="startAssessments()">Archetype Assessment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHETYPE -->
+<div id="screen-archetype" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="card">
+    <h2 id="arch-heading">Player 1 &ndash; choose your archetype</h2>
+    <p class="muted" style="margin-bottom:4px">Read the scenario, then pick the response that feels most natural to you under pressure.</p>
+    <div class="narrative-intro" id="arch-scenario"></div>
+    <div class="archetype-grid" id="arch-grid"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="arch-confirm" onclick="confirmArch()" disabled>Confirm</button></div>
+  </div>
+</div>
+
+<!-- INTRO -->
+<div id="screen-intro" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="card photo-card">
+    <img class="card-photo"
+      src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1400&q=75"
+      alt="Patagonia Icefield at dawn"
+      onerror="this.style.display='none'">
+    <div class="photo-body">
+      <h1>Operation Hielo Sur</h1>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:22px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.12em;text-transform:uppercase">January 2025 &nbsp;&middot;&nbsp; Southern Patagonia Icefield, Chile &nbsp;&middot;&nbsp; 2,400 metres</div>
+      <div class="narrative-intro">
+        <p>The Southern Patagonia Icefield &mdash; <span class="highlight">Hielo Sur</span> &mdash; is one of the largest temperate ice masses on Earth. 350 kilometres of glacial terrain. Crevasse fields, whiteout conditions, and winds that change without warning. No roads. No rescue within six hours.</p>
+        <p style="margin-top:16px">Your international team has assembled in <span class="highlight">Puerto Natales</span> for what will be a 60-day crossing research expedition. The science is important. But this game is not about the science.</p>
+        <p style="margin-top:16px">It is about what happens inside a team under sustained pressure. <span class="highlight">BREAK POINT</span> uses the Dirty Dozen framework, twelve human factors identified in high-risk environments, to shape every decision you make. Most of them will be invisible until the debrief.</p>
+        <p style="margin-top:16px;font-size:0.86rem;color:var(--muted)">14 scenarios across 4 phases. Hidden factors accumulate with each decision. The debrief reveals what the team could not see in the moment.</p>
+      </div>
+      <div id="team-summary" class="mt-16"></div>
+      <div class="btn-row mt-24">
+        <button class="btn btn-primary" onclick="startGame()">Begin Expedition</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="game-header">
+    <div>
+      <div class="logo" id="hdr-name">Team Hielo</div>
+      <div class="subtitle">Operation Hielo Sur &nbsp;&middot;&nbsp; Southern Patagonia Icefield</div>
+    </div>
+    <div class="hdr-right">Day <span id="hdr-day">1</span> of 60 &nbsp;&middot;&nbsp; Scenario <span id="hdr-sc">1</span> of 14</div>
+  </div>
+  <div class="resources">
+    <div class="res-card" id="res-card-stability">
+      <div class="res-label">Team Stability <span id="rv-stability">20</span></div>
+      <div class="res-track"><div class="res-fill stability" id="rb-stability" style="width:100%"></div></div>
+    </div>
+    <div class="res-card" id="res-card-awareness">
+      <div class="res-label">Situational Awareness <span id="rv-awareness">15</span></div>
+      <div class="res-track"><div class="res-fill awareness" id="rb-awareness" style="width:100%"></div></div>
+    </div>
+    <div class="res-card" id="res-card-cohesion">
+      <div class="res-label">Team Cohesion <span id="rv-cohesion">15</span></div>
+      <div class="res-track"><div class="res-fill cohesion" id="rb-cohesion" style="width:100%"></div></div>
+    </div>
+  </div>
+  <div id="scoreboard" class="scoreboard" style="display:none">
+    <h3>Previous Top Scorers</h3>
+    <div id="score-rows"></div>
+  </div>
+  <div id="caller-banner" class="caller-banner" style="display:none">
+    <span class="caller-label">This round&rsquo;s caller</span>
+    <span class="caller-name" id="caller-name-display"></span>
+    <span style="font-size:0.78rem;color:var(--muted);margin-left:auto">Read the scenario aloud and name the decision.</span>
+  </div>
+  <div class="card">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
+      <span class="tag tag-day" id="sc-day-tag">Day 1</span>
+      <span class="tag" id="sc-type-tag">Decision</span>
+      <span class="tag tag-phase" id="sc-phase-tag">Briefing</span>
+    </div>
+    <h2 id="sc-title">Loading...</h2>
+    <div id="timer-wrap" style="display:none" class="timer-wrap">
+      <div class="timer-svg">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle class="ring-bg" cx="26" cy="26" r="22"/>
+          <circle class="ring-fg" id="timer-ring" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="0" stroke="var(--danger)"/>
+        </svg>
+        <div class="ring-num" id="timer-num">60</div>
+      </div>
+      <div class="timer-label"><strong>Time Pressure Active</strong>Indecision costs the team &mdash; decide before the clock runs out.</div>
+    </div>
+    <div class="scenario-body" id="sc-body"></div>
+    <div class="options" id="sc-options"></div>
+    <div id="outcome-area" style="display:none">
+      <div class="outcome-banner" id="outcome-banner">
+        <div id="outcome-text"></div>
+        <div class="pts" id="outcome-pts"></div>
+      </div>
+      <div id="cascade-note" class="cascade-note" style="display:none"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="confirm-btn" onclick="confirmChoice()" disabled>Confirm Decision</button>
+      <button class="btn btn-secondary" id="next-btn" onclick="nextSc()" style="display:none">Next Scenario</button>
+    </div>
+  </div>
+</div>
+
+<!-- DEBRIEF -->
+<div id="screen-debrief" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="debrief-photo-wrap">
+    <img class="debrief-photo"
+      src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80"
+      alt="Icefield ridge at dawn"
+      onerror="this.style.display='none';this.nextElementSibling.style.background='linear-gradient(to bottom,rgba(6,9,16,0.4),rgba(6,9,16,0.95))'">
+    <div class="debrief-photo-overlay"></div>
+  </div>
+  <div class="debrief-header" id="debrief-header-block">
+    <div class="result-icon" id="db-icon"></div>
+    <div class="debrief-rule"></div>
+    <h1 id="db-title">Expedition Complete</h1>
+    <p id="db-sub"></p>
+  </div>
+  <div class="final-scores">
+    <div class="final-score-card">
+      <div class="label">Team Stability</div>
+      <div class="val stability" id="fs-stability">0</div>
+      <div class="score-denom">/ 20</div>
+    </div>
+    <div class="final-score-card">
+      <div class="label">Situational Awareness</div>
+      <div class="val awareness" id="fs-awareness">0</div>
+      <div class="score-denom">/ 15</div>
+    </div>
+    <div class="final-score-card">
+      <div class="label">Team Cohesion</div>
+      <div class="val cohesion" id="fs-cohesion">0</div>
+      <div class="score-denom">/ 15</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Expedition Verdict</h3>
+    <p id="db-narrative" style="line-height:1.9;color:rgba(237,240,248,0.78)"></p>
+  </div>
+  <div class="card">
+    <h3>Human Factor Analysis &mdash; The Dirty Dozen</h3>
+    <p class="muted" style="font-size:0.79rem;margin-bottom:16px">These twelve factors shaped your team's behaviour on the icefield. The ones highlighted in red were activated by your decisions. The ones greyed out never took hold.</p>
+    <div class="dd-section-header">
+      <span style="font-family:'Space Grotesk',sans-serif;font-size:0.78rem;color:var(--muted)">Factors activated this expedition</span>
+      <span class="dd-count-badge" id="dd-count-badge">0 of 12</span>
+    </div>
+    <div class="dd-grid" id="dd-grid"></div>
+  </div>
+  <div class="card">
+    <h3>Decision Log</h3>
+    <p class="muted" style="font-size:0.79rem;margin-bottom:16px">Earlier decisions shaped later crises.</p>
+    <div class="decision-log" id="db-log"></div>
+  </div>
+  <div class="card">
+    <h3>Psychological Debrief</h3>
+    <p id="db-psych" style="color:rgba(237,240,248,0.78);line-height:1.9"></p>
+  </div>
+  <div class="btn-row" style="justify-content:center;margin-top:8px;flex-wrap:wrap;gap:10px">
+    <button class="btn btn-secondary" onclick="window.location.href='index.html'">&#8592; Home</button>
+    <button class="btn btn-primary" onclick="resetGame()">Play Again</button>
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<script>
+function checkPassword(e){
+  e.preventDefault();
+  var input=document.getElementById('pw-input');
+  var err=document.getElementById('pw-gate-error');
+  if(input.value==='Torres'){
+    document.getElementById('pw-gate').style.display='none';
+    var btn=document.getElementById('btn-begin');
+    btn.style.display='inline-block';
+    btn.focus();
+  } else {
+    input.classList.remove('pw-err');
+    void input.offsetWidth;
+    input.classList.add('pw-err');
+    err.textContent='Incorrect. Try again.';
+    input.value='';
+    input.focus();
+  }
+}
+
+/* ============================================================
+   DIRTY DOZEN DATA
+   ============================================================ */
+const DIRTY_DOZEN=[
+  {id:'lack_communication',n:1,name:'Lack of Communication',desc:'Information was not passed clearly, fully, or at the right time.',learning:'When information stops moving through a team, errors fill the gap. Communication is not just speaking — it is confirming that what was said was understood.'},
+  {id:'distraction',n:2,name:'Distraction',desc:'Attention was pulled away from a critical task at a critical moment.',learning:'Distraction is not always obvious. Low-stakes moments before a task are often when attention is most fragile.'},
+  {id:'lack_resources',n:3,name:'Lack of Resources',desc:'The team continued without adequate equipment, time, or energy.',learning:'Proceeding with known resource gaps is a choice. Acknowledging the gap is the first step to managing the risk it creates.'},
+  {id:'stress',n:4,name:'Stress',desc:'Pressure increased cognitive load and narrowed decision-making.',learning:'Stress does not always feel like stress. Tunnel vision, irritability, or moving faster than the situation requires are early indicators.'},
+  {id:'complacency',n:5,name:'Complacency',desc:'Familiarity reduced vigilance at a moment when attention was needed.',learning:'Complacency peaks when things are going well. The absence of recent incidents is not evidence of safety.'},
+  {id:'lack_teamwork',n:6,name:'Lack of Teamwork',desc:'Individuals acted independently rather than as a coordinated unit.',learning:'Teamwork is not natural under pressure — it must be practised and actively maintained. Coordination breaks down when stress rises.'},
+  {id:'pressure',n:7,name:'Pressure',desc:'Time or social pressure forced rushed or unspoken decisions.',learning:'Pressure comes from outside and inside. Sometimes the team creates more pressure on itself than the environment does.'},
+  {id:'lack_awareness',n:8,name:'Lack of Awareness',desc:'The team missed signals — in the environment or within itself.',learning:'Situational awareness degrades when attention is narrow and recovers when the team slows down to look.'},
+  {id:'lack_knowledge',n:9,name:'Lack of Knowledge',desc:'A skill or information gap became a risk under challenge.',learning:'Knowledge gaps rarely cause problems until the moment they do. Surface them before the stakes are high.'},
+  {id:'fatigue',n:10,name:'Fatigue',desc:'Performance degraded over time and was not managed.',learning:'Fatigue is cumulative and invisible to the person experiencing it. Teams need external prompts to recognise when capacity has dropped.'},
+  {id:'lack_assertiveness',n:11,name:'Lack of Assertiveness',desc:'People saw something that mattered and did not say it.',learning:'The gap between knowing something and saying it is one of the most common precursors to incidents. Psychological safety closes that gap.'},
+  {id:'norms',n:12,name:'Norms',desc:'Unsafe or suboptimal behaviours became accepted as standard.',learning:'Norms are invisible until challenged. What a team does without thinking is what it has decided — usually without deciding — is acceptable.'}
+];
+
+/* ============================================================
+   ARCHETYPES
+   ============================================================ */
+const ARCHETYPES=[
+  {id:'navigator',name:'Navigator',tagline:'Creates clarity through structure, direction, and planning.',response:'Lay out the options clearly and map the fastest, safest route forward.'},
+  {id:'guardian',name:'Guardian',tagline:'Protects the team by managing risk and upholding standards.',response:'Assess the risk first. Protect the group before moving forward.'},
+  {id:'synchroniser',name:'Synchroniser',tagline:'Keeps people aligned so the team moves as one system.',response:'Make sure everyone understands the situation and is working together.'},
+  {id:'anchor',name:'Anchor',tagline:'Stabilises the group under pressure by regulating emotion.',response:'Stay calm, keep the group steady, and create space to think clearly.'},
+  {id:'connector',name:'Connector',tagline:'Builds trust and cohesion by keeping relationships strong.',response:'Check in with each person. Trust and communication come first.'},
+  {id:'energiser',name:'Energiser',tagline:'Raises team energy and drives momentum forward.',response:'Lift the mood, maintain momentum, and keep people moving.'},
+  {id:'decision_maker',name:'Decision-Maker',tagline:'Steps forward with clarity and commitment when action is needed.',response:'Make the call. Clarify the decision, own it, and move the team forward.'},
+  {id:'explorer',name:'Explorer',tagline:'Finds new paths through experimentation and adaptation.',response:'Test assumptions. Look for options that are not obvious yet.'},
+  {id:'innovator',name:'Innovator',tagline:'Challenges assumptions and generates new possibilities.',response:'Question whether the plan is still the right plan. What are we missing?'}
+];
+
+const ARCH_SCENARIO=`You are on a crevassed glacier at 1,800 metres. Fog has reduced visibility to 15 metres. The lead rope team has stopped. Behind you, two team members have gone quiet — one is shivering, the other has been staring at the ground for five minutes. The team leader is 40 metres ahead and out of sight. Nobody has spoken in twelve minutes.\n\nUnder pressure, it is your natural preference to…`;
+
+/* ============================================================
+   SCENARIOS
+   ============================================================ */
+const SCENARIOS=[
+{id:'sc01',day:1,type:'normal',phase:'Briefing',timed:false,title:'Ice Shelf Briefing — pre-departure',
+body:`The team gathers around a folding table in Puerto Natales. Topographical maps of Hielo Sur are spread out. Your guide, Elena, explains crevasse zone identification for the first crossing section.\n\nThree team members are still sorting gear. One is on their phone. Nobody raises this. Elena finishes and asks: "Questions?"\n\nSilence.\n\nHow does the team respond?`,
+options:[
+{id:'a',text:'Pause the brief. Ask everyone to give full attention. Restart the crevasse section and ask each person to summarise one safety point before moving on.',quality:'best',stability:1,awareness:1,cohesion:0,outcome:'A brief pause creates shared understanding. Every person can articulate the crevasse protocol. Elena looks satisfied. The team moves with confidence.',tone:'good',cascade:'brief_solid',factors:[],log:'Full attention at briefing — crevasse protocol understood'},
+{id:'b',text:'Continue. Follow up individually with the distracted members later in the evening.',quality:'ok',stability:0,awareness:0,cohesion:1,outcome:'Some catch-up happens later. But the window for shared understanding has passed. Two members have a slightly different mental model of the safe corridor.',tone:'ok',cascade:'brief_partial',factors:['distraction','lack_assertiveness'],log:'Brief continued with distraction — partial understanding'},
+{id:'c',text:'Brief ends. The team seems to have the gist. Move on to equipment allocation.',quality:'worst',stability:-1,awareness:-2,cohesion:-1,outcome:'Three team members leave the briefing without knowing the crevasse identification procedure. Nobody has said anything. This gap will surface on the ice.',tone:'bad',cascade:'brief_incomplete',factors:['lack_communication','distraction','lack_assertiveness'],log:'Briefing ended without checking understanding — knowledge gap planted'},
+{id:'d',text:'Ask each person to repeat back one element of the safety brief before the meeting closes.',quality:'ok',stability:0,awareness:1,cohesion:-1,outcome:'Understanding is checked. Two gaps surface and are corrected. Slight friction in the group — some felt it was patronising — but the information is now shared.',tone:'ok',cascade:'brief_checked',factors:['distraction'],log:'Brief comprehension checked — gaps corrected, minor friction'}
+]},
+{id:'sc02',day:2,type:'normal',phase:'Briefing',timed:false,title:'Gear Manifest — what gets checked',
+body:`Pre-departure kit check. You find: one avalanche beacon battery is untested, spare crampon points are missing from the communal bag, and the first aid kit hasn't been opened since the last expedition.\n\nThe logistics lead, {PLAYER_A}, says: "It's fine. We've done this route before. We know what we need."\n\nOthers in the team say nothing.\n\nWhat does the team do?`,
+options:[
+{id:'a',text:'Stop. Physically check every item against the manifest. Replace the beacon battery. Source crampon points from the local gear shop before departure.',quality:'best',stability:1,awareness:0,cohesion:0,outcome:'Minor delay. Full kit confirmed. Elena watches and nods. The team departs knowing exactly what they have.',tone:'good',cascade:'gear_complete',factors:[],log:'Full gear check completed — departed with confirmed kit'},
+{id:'b',text:'Replace the beacon battery. Accept the missing crampon points as low-risk given the planned terrain.',quality:'ok',stability:0,awareness:0,cohesion:0,outcome:'The battery issue is resolved. The crampon gap is documented but accepted. A known risk carried forward.',tone:'ok',cascade:'gear_partial',factors:['complacency','lack_resources'],log:'Beacon replaced — crampon gap accepted as low risk'},
+{id:'c',text:'Accept {PLAYER_A}\'s assessment. It is a well-known route and the team is experienced.',quality:'worst',stability:-2,awareness:-1,cohesion:-1,outcome:'No one has challenged the gap. The team departs with untested gear and an incomplete medical kit. Complacency is the first factor in play.',tone:'bad',cascade:'gear_unchecked',factors:['complacency','norms','lack_resources'],log:'Gear unchecked — experience used to justify complacency'},
+{id:'d',text:'Ask a second team member to run the checklist independently as a cross-check.',quality:'ok',stability:0,awareness:1,cohesion:-1,outcome:'The independent check finds the battery issue and the medical kit gap. Crampon points are still missed. Better than nothing.',tone:'ok',cascade:'gear_verified',factors:['complacency'],log:'Independent gear check — two issues caught, one missed'}
+]},
+{id:'sc03',day:5,type:'normal',phase:'Expedition',timed:false,title:'Icefield — the radio fails',
+body:`Day 5. The team has spread into two groups across 200 metres of glacier. The primary radio malfunctions mid-crossing. Hand signals in patchy fog become ambiguous.\n\n{PLAYER_A} at the rear sees the front pair deviate from the marked safe corridor. They assume there must be a reason. They say nothing.\n\nThe deviation continues.\n\nWhat happens?`,
+options:[
+{id:'a',text:'Stop all movement. Use a whistle signal to regroup. Establish a backup communication protocol before continuing.',quality:'best',stability:0,awareness:1,cohesion:1,outcome:'The group regroups within eight minutes. The front pair had followed what looked like a safer line — but it was moving them toward a crevasse zone. Crisis averted.',tone:'good',cascade:'comm_reestablished',factors:[],log:'Radio failure handled — regrouped, safe corridor re-established'},
+{id:'b',text:'Move quickly to close the distance. Redirect the front pair verbally when in range.',quality:'ok',stability:-1,awareness:0,cohesion:0,outcome:'The catch-up works. But hurrying on glacial terrain created its own risk. The deviation is corrected — slowly.',tone:'ok',cascade:'comm_delayed',factors:['lack_communication'],log:'Closed gap verbally — deviation corrected with delay'},
+{id:'c',text:'Continue following the front pair. They must know something you do not.',quality:'worst',stability:-2,awareness:-2,cohesion:0,outcome:'The assumption of competence replaces communication. The front pair did not know something — they were operating on a wrong assumption. The team is now off-route on a crevassed glacier.',tone:'bad',cascade:'route_deviated',factors:['lack_communication','lack_awareness','lack_assertiveness'],log:'Followed deviation silently — team off-route on crevasse field'},
+{id:'d',text:'Use the satellite phone as backup to reach base camp and clarify the front pair\'s last known waypoint.',quality:'ok',stability:0,awareness:1,cohesion:-1,outcome:'Base camp assistance is helpful but slow. Twenty minutes lost. The information gap was real — and could have been avoided with a backup protocol established earlier.',tone:'ok',cascade:null,factors:['lack_communication'],log:'Satellite used as comms backup — gap resolved with delay'}
+]},
+{id:'sc04',day:8,type:'normal',phase:'Expedition',timed:false,title:'The Quiet One — a teammate in decline',
+body:`{PLAYER_B} has been slowing since Day 6. Every check-in is deflected: "I'm fine — just tired." The group's pace has dropped to match them. Nobody has named this directly.\n\nThe unspoken norm: don't challenge a teammate's self-assessment in the field.\n\nThe silence is getting louder.\n\nWhat does the team do?`,
+options:[
+{id:'a',text:'Name the pattern as a group: "We\'ve slowed and no one has said why. {PLAYER_B}, we need an honest conversation about your physical state — this is about the team\'s safety."',quality:'best',stability:1,awareness:1,cohesion:1,outcome:'An uncomfortable moment produces a real answer. {PLAYER_B} admits their knee has been worsening. Load is redistributed. The team moves forward with accurate information.',tone:'good',cascade:'assertiveness_modelled',factors:[],log:'Team state named openly — {PLAYER_B} honest, load redistributed'},
+{id:'b',text:'Speak to {PLAYER_B} privately during a rest stop — out of earshot of the group.',quality:'ok',stability:0,awareness:1,cohesion:0,outcome:'{PLAYER_B} opens up slightly in private. Partial information surfaces. The team continues with better — but incomplete — situational awareness.',tone:'ok',cascade:'private_check',factors:['norms'],log:'Private check-in with {PLAYER_B} — partial information surfaced'},
+{id:'c',text:'Continue respecting {PLAYER_B}\'s self-assessment. They know their own limits better than anyone.',quality:'worst',stability:-1,awareness:-1,cohesion:-2,outcome:'The norm is preserved. The problem is not. By Day 12, the team\'s pace has dropped 30%. {PLAYER_B} is carrying a worsening injury that nobody has acknowledged.',tone:'bad',cascade:'slow_norm_embedded',factors:['pressure','norms','lack_assertiveness'],log:'Self-assessment deferred to — norm embedded, injury worsening silently'},
+{id:'d',text:'Restructure the group so {PLAYER_B} is roped directly to the strongest teammate. Closer monitoring without naming the issue.',quality:'ok',stability:0,awareness:1,cohesion:-1,outcome:'Practical management without confrontation. {PLAYER_B} is safer but the underlying issue remains unaddressed. The norm is untouched.',tone:'ok',cascade:null,factors:['norms','lack_assertiveness'],log:'Group restructured — monitoring improved, issue not addressed'}
+]},
+{id:'sc05',day:12,type:'crisis',phase:'Expedition',timed:true,title:'Navigation Error — off-route on crevasse ice',
+body:`CRISIS — Day 12. After two hours of navigation, the team realises they are 400 metres off the intended route and moving toward a documented high-risk crevasse zone.\n\nReviewing the GPS log, the deviation started 90 minutes ago. {PLAYER_A} says quietly: "I thought something felt off an hour back."\n\nNobody had spoken up at the time.\n\nTimer is running.`,
+options:[
+{id:'a',text:'Stop all movement. Take an accurate GPS fix. Calculate the safest return path. Assign a navigator to lead with active route commentary throughout.',quality:'best',stability:0,awareness:2,cohesion:0,outcome:'Clean recovery. The team retraces to the last confirmed waypoint and resumes on the correct line. The debrief question is clear: why was the concern not voiced earlier?',tone:'good',cascade:'nav_corrected',factors:[],log:'Navigation error corrected — stopped, fixed position, rerouted'},
+{id:'b',text:'Retrace route to the last confirmed waypoint before the deviation began.',quality:'ok',stability:-1,awareness:1,cohesion:0,outcome:'The retrace works but takes longer than necessary. The root cause — nobody spoke up when something felt wrong — is not addressed.',tone:'ok',cascade:null,factors:['lack_awareness'],log:'Retraced to last waypoint — corrected with delay'},
+{id:'c',text:'Push forward — the crevasse field is marked on the map and the team is experienced enough to pick a safe path through.',quality:'worst',stability:-3,awareness:-2,cohesion:-1,outcome:'Experience does not substitute for preparation. On unmarked ice, three team members probe through a snow bridge. One leg goes through. Nobody is injured — this time.',tone:'bad',cascade:'crevasse_risk',factors:['lack_awareness','stress','lack_assertiveness'],log:'Pushed into crevasse field — near-miss, team shaken'},
+{id:'d',text:'Radio base camp, relay your position, and request route correction guidance before moving.',quality:'ok',stability:0,awareness:1,cohesion:-1,outcome:'External guidance confirms the error and provides a correction vector. Reliable — but slow. The satellite call takes 25 minutes on moving ice.',tone:'ok',cascade:null,factors:['lack_assertiveness'],log:'Base camp consulted for route correction — resolved with delay'}
+]},
+{id:'sc06',day:15,type:'normal',phase:'Expedition',timed:false,title:'The Shortcut — unmarked ice',
+body:`Day 15. The team is three hours ahead of schedule. The planned route crosses a glacial lake via an ice margin. Elena suggests an unmarked shortcut across what appears to be stable blue ice — saving 4 hours.\n\nNo one has assessed this section. It is not in the risk documentation. It is not in the team's knowledge base.\n\nEveryone wants to save the time.\n\nHow does the team decide?`,
+options:[
+{id:'a',text:'Decline the shortcut. Stick to the assessed route — the time saving does not justify crossing unmarked terrain.',quality:'best',stability:1,awareness:0,cohesion:-1,outcome:'Some disappointment. But the logic is clear. The team crosses via the known margin and arrives 3 hours later than the shortcut would have allowed. No incidents.',tone:'good',cascade:'route_discipline',factors:[],log:'Shortcut declined — assessed route followed, time cost accepted'},
+{id:'b',text:'Probe the first 100 metres with poles and assess structural indicators. Only proceed if clear.',quality:'ok',stability:0,awareness:1,cohesion:0,outcome:'The probing reveals two ambiguous sections. The team debates. Eventually proceeds. The crossing holds — but the decision process was slow and tension-filled.',tone:'ok',cascade:null,factors:['complacency'],log:'Shortcut probed — marginal indicators, crossed with caution'},
+{id:'c',text:'Follow Elena\'s judgement — local knowledge is worth more than the risk assessment document.',quality:'worst',stability:-2,awareness:-1,cohesion:0,outcome:'Elena\'s instinct was based on summer conditions. You are crossing in January. Conditions differ. The ice makes a sound on the second crossing and the team runs the last 40 metres.',tone:'bad',cascade:'shortcut_risk',factors:['complacency','lack_knowledge','norms'],log:'Unmarked shortcut taken — ice unstable, emergency crossing'},
+{id:'d',text:'Ask Elena to explain the basis of her confidence — probe the reasoning before making any decision.',quality:'ok',stability:0,awareness:1,cohesion:0,outcome:'Elena explains she crossed here in February two years ago. The team asks about seasonal variation. Elena acknowledges she is less certain than she presented. The route is held.',tone:'ok',cascade:null,factors:['lack_knowledge'],log:'Elena\'s reasoning probed — seasonal uncertainty surfaced, route held'}
+]},
+{id:'sc07',day:20,type:'crisis',phase:'Expedition',timed:true,title:'Crevasse — a member breaks through',
+body:`CRISIS — Day 20. A team member breaks through a snow bridge and sinks to their waist into a crevasse opening. They are holding position — arms out, not falling. The rest of the team is roped but not in anchor position.\n\nMultiple voices shout contradictory instructions.\n\n"Pull them!" "Stop — you'll fall in." "Get the rope around—" "Wait wait wait."\n\nTimer running.`,
+options:[
+{id:'a',text:'One voice only. Designate team leader immediately: "Everyone stop. I\'m leading this. Two people — anchor now. One person — rope to casualty. Everyone else — freeze."',quality:'best',stability:2,awareness:1,cohesion:1,outcome:'Clear command structure stops the chaos in six seconds. Two anchors placed. Casualty extracted in under four minutes. Textbook crevasse rescue.',tone:'good',cascade:'rescue_correct',factors:[],log:'Crevasse rescue — command structure established, clean extraction'},
+{id:'b',text:'Two members pull the casualty out via the rope. Others brace as best they can.',quality:'ok',stability:0,awareness:0,cohesion:0,outcome:'The pull works. But without anchors, two rescuers were themselves at risk. The casualty is out — the method was luck as much as skill.',tone:'ok',cascade:'rescue_partial',factors:['lack_communication','stress'],log:'Crevasse rescue by pull — successful but unanchored, process risk'},
+{id:'c',text:'Everyone moves toward the casualty — there is strength in numbers.',quality:'worst',stability:-4,awareness:-2,cohesion:-1,outcome:'Four people approach the unstable bridge simultaneously. The bridge widens. The casualty falls further. Two rescuers lose their footing. A single incident becomes a complex rescue.',tone:'bad',cascade:'crevasse_worsened',factors:['lack_teamwork','lack_communication','stress'],log:'Multiple people rushed crevasse — incident compounded, complex rescue'},
+{id:'d',text:'Instruct the casualty to self-extract using their ice axes while the team maintains rope tension.',quality:'ok',stability:-1,awareness:0,cohesion:0,outcome:'The casualty has the technique. They self-extract in seven minutes. Slower — and harder on the person in difficulty — but safe.',tone:'ok',cascade:null,factors:['lack_communication'],log:'Self-extraction directed — casualty out, slower process'}
+]},
+{id:'sc08',day:25,type:'normal',phase:'Expedition',timed:false,title:'Fatigue Accumulation — the invisible load',
+body:`Day 25. Team check-in. Three members score energy below 3/10. The expedition leader acknowledges this privately but decides not to formally log it: "It would look bad in the report. Everyone is tired at this stage."\n\nCamp tasks are becoming careless. Anchors are checked once instead of twice. Tent guy-lines aren't fully tensioned.\n\n"That's always fine in these conditions."\n\nWhat does the team do?`,
+options:[
+{id:'a',text:'Log the fatigue formally. Call an unscheduled rest day. Restore all safety protocols to full standard — no exceptions.',quality:'best',stability:1,awareness:1,cohesion:1,outcome:'The rest day restores performance measurably. Anchors are rechecked. The formal log creates accountability. Elena says this is the best decision the team has made.',tone:'good',cascade:'fatigue_managed',factors:[],log:'Fatigue formally logged — rest day called, protocols restored'},
+{id:'b',text:'Reduce today\'s distance target without calling a full rest. Push less hard, keep moving.',quality:'ok',stability:0,awareness:0,cohesion:0,outcome:'Marginal improvement. The root issue — fatigue affecting protocol compliance — is unaddressed. Standards continue to slip, just more slowly.',tone:'ok',cascade:null,factors:['fatigue','complacency'],log:'Distance reduced — fatigue partially managed, protocols still slipping'},
+{id:'c',text:'Push through. Physical discomfort is normal at this stage. The team is behind on research data collection.',quality:'worst',stability:-2,awareness:-1,cohesion:-1,outcome:'By Day 28, the anchor failure rate has doubled. One tent nearly blows away overnight. The team is operating below safe threshold and nobody has named it.',tone:'bad',cascade:'fatigue_embedded',factors:['fatigue','complacency','norms'],log:'Pushed through fatigue — protocol failures accumulating silently'},
+{id:'d',text:'Redistribute weight. Give the most fatigued members lighter loads. Maintain the schedule.',quality:'ok',stability:0,awareness:1,cohesion:-1,outcome:'Physical load is better distributed. Mental load and protocol fatigue are unchanged. A practical fix for part of the problem.',tone:'ok',cascade:null,factors:['fatigue'],log:'Load redistributed — physical fatigue partially addressed'}
+]},
+{id:'sc09',day:30,type:'normal',phase:'Critical Incidents',timed:false,title:'The Knowledge Gap — never tested in the field',
+body:`Day 30. The planned descent route requires ice anchor placement in a specific two-piece configuration. Your newest team member, {PLAYER_A}, watched a demonstration during pre-expedition training but has never placed one in the field.\n\nOther team members notice. Nobody says anything — each assumes someone else will handle it.\n\n{PLAYER_A} reaches for the gear.\n\nWhat happens?`,
+options:[
+{id:'a',text:'Stop. A competent team member walks {PLAYER_A} through the technique hands-on. Practice the placement twice before it goes live. Confirm before proceeding.',quality:'best',stability:1,awareness:1,cohesion:1,outcome:'{PLAYER_A} places both anchors correctly after three minutes of practical guidance. The gap was real — and is now closed. This is what good teams do.',tone:'good',cascade:'knowledge_shared',factors:[],log:'Anchor technique taught on site — gap closed, placement confirmed'},
+{id:'b',text:'Assign a competent member to set all anchors on this section. {PLAYER_A} observes.',quality:'ok',stability:0,awareness:0,cohesion:0,outcome:'Safe in the immediate term. The knowledge gap persists. {PLAYER_A} is sidelined from a core task without explanation — they notice and withdraw slightly.',tone:'ok',cascade:null,factors:['lack_knowledge','lack_assertiveness'],log:'Anchors reassigned — immediate safety maintained, gap not addressed'},
+{id:'c',text:'Proceed normally. {PLAYER_A} can figure it out in the moment — they watched the demonstration.',quality:'worst',stability:-2,awareness:-2,cohesion:-1,outcome:'The first anchor is placed incorrectly. Nobody catches it. The second holds — but the first creates a cascading tension problem on the rope system. Reorganisation costs two hours and significant confidence.',tone:'bad',cascade:'anchor_risk',factors:['lack_knowledge','norms','lack_assertiveness'],log:'Knowledge gap untested — anchor failure, rope system compromised'},
+{id:'d',text:'Ask {PLAYER_A} to verbally walk through the placement sequence before touching the gear. Identify where the gap is, then decide.',quality:'ok',stability:0,awareness:1,cohesion:0,outcome:'{PLAYER_A} gets to step three before stalling. The gap is precise and narrow. Five minutes of coaching closes it. Much faster than a full demonstration.',tone:'ok',cascade:null,factors:['lack_knowledge'],log:'Verbal walkthrough identified gap — targeted coaching applied'}
+]},
+{id:'sc10',day:36,type:'crisis',phase:'Critical Incidents',timed:true,title:'The Pressure Window — six hours to decide',
+body:`CRISIS — Day 36. A 6-hour weather window opens unexpectedly. The primary summit push is now possible — but two team members are visibly exhausted and one has been quietly managing a foot blister that has worsened.\n\nThe expedition leader is excited and moving fast toward a go decision.\n\nNobody has raised the physical concerns.\n\nTimer running.`,
+options:[
+{id:'a',text:'Pause. Ask each team member directly for an honest physical status before committing to the window: "Sit down. Tell me where you actually are."',quality:'best',stability:1,awareness:1,cohesion:1,outcome:'Two members report at the limit. One is below it. The window is used for a partial push with the fit members. The exhausted ones rest. This is the right call.',tone:'good',cascade:'team_voice',factors:[],log:'Physical status checked before committing — partial push with fit members'},
+{id:'b',text:'Check in privately with the two visibly tired members. Make the go/no-go based on their honest input.',quality:'ok',stability:0,awareness:1,cohesion:0,outcome:'Private input is more honest. Enough information surfaces to make a cautious but reasonable call. The blister is missed.',tone:'ok',cascade:null,factors:['pressure'],log:'Private check-in — good call made, blister issue not surfaced'},
+{id:'c',text:'Commit to the window immediately. The weather won\'t wait. The team will manage.',quality:'worst',stability:-3,awareness:-2,cohesion:-1,outcome:'The exhausted members push on without voicing their state. The blister tears open at altitude. The team descends two hours in. The window is wasted entirely.',tone:'bad',cascade:'pressure_driven',factors:['pressure','lack_assertiveness','fatigue'],log:'Committed without physical check — blister failure at altitude, window wasted'},
+{id:'d',text:'Delay the decision two hours. Rest, eat, reassess before committing to a go.',quality:'ok',stability:0,awareness:0,cohesion:0,outcome:'The two-hour delay allows honest assessment. The window narrows to four hours — enough for a careful push. Cautious and reasonable.',tone:'ok',cascade:null,factors:['pressure','lack_assertiveness'],log:'Two-hour delay before commit — cautious go, window shortened'}
+]},
+{id:'sc11',day:40,type:'normal',phase:'Critical Incidents',timed:false,title:'After the Incident — normalisation',
+body:`Day 40. After the crevasse incident on Day 20, the team has begun making jokes about it. Dark humour has become the processing mechanism. It is working — morale is good.\n\nBut today, a junior member watches an experienced teammate skip a safety check that was re-emphasised after the incident. The junior member says nothing. They assume the senior person must have a reason.\n\nThis is the second time this week.\n\nHow does the team respond?`,
+options:[
+{id:'a',text:'Name the pattern — without blame: "We survived something on Day 20. I\'m noticing we\'re treating that protocol as optional now. Let\'s not."',quality:'best',stability:0,awareness:1,cohesion:0,outcome:'The naming lands cleanly. No defensiveness. The check resumes standard practice. The junior member is visibly relieved someone said it.',tone:'good',cascade:'norms_challenged',factors:[],log:'Post-incident norm drift named — protocol restored, no blame'},
+{id:'b',text:'Speak to the experienced member who skipped the check. Address it individually, not as a team issue.',quality:'ok',stability:0,awareness:0,cohesion:0,outcome:'The member acknowledges and corrects. But the wider pattern — junior deference to experience — is untouched.',tone:'ok',cascade:null,factors:['norms','complacency'],log:'Individual check addressed — system norm unchanged'},
+{id:'c',text:'Leave it. Morale is fragile after the crevasse incident. The humour is keeping people going. Don\'t disrupt it.',quality:'worst',stability:-1,awareness:-2,cohesion:-1,outcome:'Within a week, two more safety checks are being skipped. The norm is now embedded. By Day 48, junior members have stopped checking anything their seniors skip.',tone:'bad',cascade:'norms_deep',factors:['norms','complacency','lack_assertiveness'],log:'Norm drift ignored — morale preserved, protocol erosion deepened'},
+{id:'d',text:'Raise it with the expedition leader only — let them decide how and whether to address it.',quality:'ok',stability:0,awareness:0,cohesion:-1,outcome:'The leader addresses it in the next team meeting — two days later. The pattern has continued for 48 hours in the meantime.',tone:'ok',cascade:null,factors:['lack_assertiveness'],log:'Escalated to leader — addressed with delay, pattern continued'}
+]},
+{id:'sc12',day:45,type:'summit',phase:'Critical Incidents',timed:true,title:'Summit Ridge — the final call',
+body:`SUMMIT PUSH — Day 45. You are at 2,200 metres on the Hielo Sur ridge. Wind has risen from 40 to 65 km/h in the past hour. One team member is at their absolute physical limit. Their rope partner knows it. So does the person behind.\n\nThe summit plateau is 45 minutes away.\n\nNobody calls a stop.\n\nTimer running.`,
+options:[
+{id:'a',text:'Stop. Name what is happening: "We have a member at their limit, wind at 65, and nobody has said stop. I am saying stop. We turn here."',quality:'best',stability:2,awareness:2,cohesion:1,outcome:'The call is hard. It is also right. The affected member almost collapses with relief. The team descends safely. The summit is not reached — but nobody is evacuated.',tone:'good',cascade:'assertiveness_summit',factors:[],log:'Summit called off — assertiveness at limit saved the team'},
+{id:'b',text:'Signal the affected member that the decision is theirs. Offer escort down if they choose to turn.',quality:'ok',stability:0,awareness:0,cohesion:0,outcome:'The affected member pushes on — unwilling to be the one who stopped the team. They manage — barely. The decision deferred to the most compromised person.',tone:'ok',cascade:null,factors:['pressure','lack_assertiveness'],log:'Decision deferred to affected member — managed, high personal cost'},
+{id:'c',text:'Push for the summit. 45 minutes. The weather window exists now. They will manage.',quality:'worst',stability:-4,awareness:-2,cohesion:-1,outcome:'The affected member collapses 20 minutes from the summit. Two members stay with them. The remaining team pushes on and reaches the summit — but the descent is a crisis management exercise.',tone:'bad',cascade:'summit_incident',factors:['pressure','lack_assertiveness','stress'],log:'Pushed past limit — member collapsed, summit reached at serious cost'},
+{id:'d',text:'Pair the affected member with the strongest teammate. Rope together and manage as a unit for the final push.',quality:'ok',stability:0,awareness:1,cohesion:0,outcome:'The paired approach works for 25 more minutes. Then both members turn together at the same point. The summit is reached by the others. A reasonable managed compromise.',tone:'ok',cascade:null,factors:['pressure'],log:'Paired approach — managed to turn point, partial summit'}
+]},
+{id:'sc13',day:52,type:'normal',phase:'Critical Incidents',timed:false,title:'Descent — the moment attention drops',
+body:`Day 52. The summit push is behind you. Descent underway. Three team members are moving without a rope on what looks like easy terrain. Jokes are circulating. Someone is filming on their phone.\n\nThis exact section — deceptively easy-looking — has seen three accidents in the past four years. All post-summit. All when teams were celebrating.\n\nElena is watching. She hasn't said anything yet.\n\nWhat does the team do?`,
+options:[
+{id:'a',text:'Stop the group. Re-rope. Name what is happening: "We are most likely to make a mistake right now. This is the research finding. Let\'s not prove it."',quality:'best',stability:1,awareness:1,cohesion:0,outcome:'The group stops. Ropes go on. The science is cited without blame. Three team members look mildly embarrassed and grateful. Descent completed without incident.',tone:'good',cascade:null,factors:[],log:'Post-summit complacency named — re-roped, descent without incident'},
+{id:'b',text:'Ask the unroped members to re-rope. No explanation needed.',quality:'ok',stability:0,awareness:1,cohesion:0,outcome:'Compliance without context. The norm persists — complied with because asked, not because understood.',tone:'ok',cascade:null,factors:['complacency'],log:'Unroped members asked to re-rope — complied, norm unchanged'},
+{id:'c',text:'Leave it. The terrain is easy, the team is happy, and a safety lecture now would kill the mood.',quality:'worst',stability:-3,awareness:-2,cohesion:0,outcome:'{PLAYER_A} slips on a wet rock 15 minutes later. A fractured wrist and a significant fall. The expedition ends in a medical evacuation rather than a celebration.',tone:'bad',cascade:'descent_incident',factors:['complacency','fatigue','norms'],log:'Post-summit complacency ignored — slip and fracture, medevac'},
+{id:'d',text:'Rope up yourself. Invite others to follow your lead without directing them.',quality:'ok',stability:0,awareness:0,cohesion:1,outcome:'Three members follow your lead. Two do not. The group is now split in protocol. Better than before — not good enough.',tone:'ok',cascade:null,factors:['complacency','norms'],log:'Led by example — partial compliance, group split on protocol'}
+]},
+{id:'sc14',day:58,type:'normal',phase:'Debrief',timed:false,title:'What happened out there — the final debrief',
+body:`Day 58. The team is back in Puerto Natales. Hot food. Dry clothes. The ice is three days behind you.\n\nThe expedition director asks for a structured debrief: "What shaped our decisions out there?"\n\nSome team members want to move on. Others are still processing. One person hasn't spoken about the crevasse incident at all.\n\nThe quality of this debrief determines what the team takes forward.\n\nHow does the team approach it?`,
+options:[
+{id:'a',text:'Full structured debrief. Each person answers three questions: what did I notice that I didn\'t say, when did I feel pressure that changed my decision, what would I do differently?',quality:'best',stability:0,awareness:0,cohesion:2,outcome:'The structure surfaces things that casual conversation would have missed. The person who hasn\'t spoken about the crevasse speaks. The team leaves with shared language for what happened.',tone:'good',cascade:null,factors:[],log:'Structured debrief — three questions, shared language, full participation'},
+{id:'b',text:'Open group conversation over dinner. Relaxed. No structure. Share what you are comfortable sharing.',quality:'ok',stability:0,awareness:0,cohesion:1,outcome:'Warm and genuine. Some insights surface. Quieter members don\'t contribute. The loudest version of events becomes the shared version.',tone:'ok',cascade:null,factors:['lack_communication'],log:'Informal debrief — partial learning, quieter voices not heard'},
+{id:'c',text:'Acknowledge the expedition and move on. "We did well. Everyone is safe. Time to recover."',quality:'worst',stability:0,awareness:-1,cohesion:-2,outcome:'The psychological weight is not processed. Three team members carry unresolved questions from the field into their next assignment. The mountain was crossed — but its lessons were not.',tone:'bad',cascade:'learning_lost',factors:['norms','lack_communication'],log:'Debrief skipped — learning abandoned, unresolved questions carried forward'},
+{id:'d',text:'Individual written reflection first — private, with prompts — then share with the group.',quality:'best',stability:0,awareness:1,cohesion:1,outcome:'Private reflection before sharing gives every voice equal preparation. The quietest insights — often the most important — are given space. The team leaves with the clearest shared picture of what happened.',tone:'good',cascade:null,factors:[],log:'Individual then group debrief — all voices heard, deepest learning'}
+]}
+];
+
+/* ============================================================
+   GAME STATE
+   ============================================================ */
+const RESOURCE_MAX={stability:20,awareness:15,cohesion:15};
+const STARTING_RESOURCES={stability:20,awareness:15,cohesion:15};
+const SEEDED_TOP_SCORES=[
+  {name:'CRREL Research',s:38},
+  {name:'Team Hielo Norte',s:24},
+  {name:'Team Patagonia',s:14}
+];
+
+function getStartingResources(){return {...STARTING_RESOURCES};}
+
+let S={
+  teamName:'Team Hielo',playerCount:6,players:[],curPlayer:0,
+  res:getStartingResources(),scIdx:0,selected:null,
+  flags:[],activeFactors:[],log:[],
+  timer:null,timerSec:60,timerExp:false,
+  gameOver:false,others:[],callerIdx:0
+};
+let selArch=null;
+
+function injectNames(str){
+  if(!str)return str;
+  const names=S.players.map(p=>p.name);
+  const pA=names[0]||'Alex';
+  const pB=names.length>1?names[1]:'Jordan';
+  return str.replace(/\{PLAYER_A\}/g,pA).replace(/\{PLAYER_B\}/g,pB);
+}
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function renderPlayerFields(){
+  const n=Math.min(9,Math.max(1,parseInt(document.getElementById('player-count-input').value)||1));
+  const c=document.getElementById('player-name-fields');c.innerHTML='';
+  for(let i=0;i<n;i++){
+    const d=document.createElement('div');d.style.marginTop='10px';
+    d.innerHTML=`<label>Player ${i+1} name</label><input type="text" id="pn-${i}" placeholder="Enter name" maxlength="24">`;
+    c.appendChild(d);
+  }
+}
+renderPlayerFields();
+
+function startAssessments(){
+  const n=Math.min(9,Math.max(1,parseInt(document.getElementById('player-count-input').value)||1));
+  S.teamName=document.getElementById('team-name-input').value.trim()||'Team Hielo';
+  S.playerCount=n;S.players=[];
+  for(let i=0;i<n;i++){
+    const nm=(document.getElementById(`pn-${i}`)?.value.trim())||`Player ${i+1}`;
+    S.players.push({name:nm,arch:null});
+  }
+  S.curPlayer=0;showArch();
+}
+
+function showArch(){
+  const p=S.players[S.curPlayer];
+  document.getElementById('arch-heading').textContent=`${p.name} \u2013 choose your archetype`;
+  document.getElementById('arch-scenario').textContent=ARCH_SCENARIO;
+  selArch=null;document.getElementById('arch-confirm').disabled=true;
+  const taken=S.players.slice(0,S.curPlayer).map(x=>x.arch).filter(Boolean);
+  const grid=document.getElementById('arch-grid');grid.innerHTML='';
+  ARCHETYPES.forEach(a=>{
+    const c=document.createElement('div');
+    c.className='arch-card'+(taken.includes(a.id)?' taken':'');
+    c.dataset.id=a.id;
+    c.innerHTML=`<div class="arch-name">${a.name}</div><div class="arch-tagline">${a.response}</div>`;
+    c.onclick=()=>pickArch(a.id);grid.appendChild(c);
+  });
+  goTo('screen-archetype');
+}
+
+function pickArch(id){
+  const taken=S.players.slice(0,S.curPlayer).map(x=>x.arch).filter(Boolean);
+  if(taken.includes(id))return;
+  selArch=id;
+  document.querySelectorAll('.arch-card').forEach(c=>c.classList.toggle('selected',c.dataset.id===id));
+  document.getElementById('arch-confirm').disabled=false;
+}
+
+function confirmArch(){
+  if(!selArch)return;
+  S.players[S.curPlayer].arch=selArch;S.curPlayer++;
+  if(S.curPlayer<S.playerCount)showArch();else showIntro();
+}
+
+function showIntro(){
+  const badges=S.players.map(p=>{
+    const a=ARCHETYPES.find(x=>x.id===p.arch);
+    return`<span class="team-badge"><span class="dot"></span>${p.name} \u2013 ${a?a.name:'?'}</span>`;
+  }).join('');
+  document.getElementById('team-summary').innerHTML=`<div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.05em;text-transform:uppercase">Your Expedition Team</div>${badges}`;
+  S.others=SEEDED_TOP_SCORES.map(team=>({...team}));
+  goTo('screen-intro');
+}
+
+function startGame(){
+  S.scIdx=0;S.res=getStartingResources();S.flags=[];S.activeFactors=[];S.log=[];
+  S.gameOver=false;S.selected=null;S.callerIdx=0;
+  document.getElementById('hdr-name').textContent=S.teamName;
+  goTo('screen-game');renderSc();
+}
+
+function renderSc(){
+  const sc=SCENARIOS[S.scIdx];S.selected=null;killTimer();
+  document.getElementById('hdr-day').textContent=sc.day;
+  document.getElementById('hdr-sc').textContent=S.scIdx+1;
+  document.getElementById('sc-day-tag').textContent=`Day ${sc.day}`;
+  const tt=document.getElementById('sc-type-tag');
+  if(sc.type==='crisis'){tt.textContent='Crisis';tt.className='tag tag-crisis'}
+  else if(sc.type==='summit'){tt.textContent='Summit Push';tt.className='tag tag-summit'}
+  else{tt.textContent='Decision';tt.className='tag tag-normal'}
+  const pt=document.getElementById('sc-phase-tag');
+  pt.textContent=sc.phase||'Expedition';
+
+  document.getElementById('sc-title').textContent=sc.title;
+  document.getElementById('sc-body').textContent=injectNames(sc.body);
+
+  const cb=document.getElementById('caller-banner');
+  const cn=document.getElementById('caller-name-display');
+  if(S.players.length>0){
+    const caller=S.players[S.callerIdx%S.players.length];
+    cn.textContent=caller.name;cb.style.display='flex';S.callerIdx++;
+  }else{cb.style.display='none'}
+
+  const opts=[...sc.options].sort(()=>Math.random()-.5);
+  const oc=document.getElementById('sc-options');oc.innerHTML='';
+  opts.forEach((o,i)=>{
+    const b=document.createElement('button');b.className='option-btn';b.dataset.id=o.id;
+    b.innerHTML=`<span class="option-letter">${String.fromCharCode(65+i)}</span>${injectNames(o.text)}`;
+    b.onclick=()=>pickOpt(o.id);oc.appendChild(b);
+  });
+  document.getElementById('outcome-area').style.display='none';
+  document.getElementById('cascade-note').style.display='none';
+  document.getElementById('confirm-btn').disabled=true;
+  document.getElementById('confirm-btn').style.display='inline-block';
+  document.getElementById('confirm-btn').textContent='Confirm Decision';
+  document.getElementById('confirm-btn').className='btn btn-primary';
+  document.getElementById('next-btn').style.display='none';
+  updateBars();updateSb();
+  if(sc.timed)startTimer();else document.getElementById('timer-wrap').style.display='none';
+}
+
+function pickOpt(id){
+  S.selected=id;
+  document.querySelectorAll('.option-btn').forEach(b=>b.classList.toggle('selected',b.dataset.id===id));
+  document.getElementById('confirm-btn').disabled=false;
+}
+
+function getDeficitCarryText(opt){
+  const d=[];
+  if(opt.stability<0)d.push('team stability');
+  if(opt.awareness<0)d.push('situational awareness');
+  if(opt.cohesion<0)d.push('team cohesion');
+  if(!d.length)return '';
+  if(d.length===1)return `This leaves the team carrying a ${d[0]} deficit into what comes next.`;
+  return `This leaves the team carrying ${d.slice(0,-1).join(', ')} and ${d[d.length-1]} deficits into what comes next.`;
+}
+
+function confirmChoice(){
+  if(!S.selected&&!S.timerExp)return;
+  killTimer();document.getElementById('timer-wrap').style.display='none';
+  const sc=SCENARIOS[S.scIdx];
+  let opt;
+  if(S.timerExp&&!S.selected){
+    opt=sc.options.find(o=>o.quality==='worst')||sc.options[sc.options.length-1];
+    document.querySelectorAll('.option-btn').forEach(b=>{if(b.dataset.id===opt.id)b.classList.add('selected')});
+  }else{opt=sc.options.find(o=>o.id===S.selected)}
+  if(!opt)return;
+
+  S.res.stability=Math.min(RESOURCE_MAX.stability,Math.max(0,S.res.stability+opt.stability));
+  S.res.awareness=Math.min(RESOURCE_MAX.awareness,Math.max(0,S.res.awareness+opt.awareness));
+  S.res.cohesion=Math.min(RESOURCE_MAX.cohesion,Math.max(0,S.res.cohesion+opt.cohesion));
+
+  if(opt.cascade)S.flags.push(opt.cascade);
+  if(opt.factors&&opt.factors.length>0){
+    opt.factors.forEach(f=>S.activeFactors.push(f));
+  }
+
+  const imp=opt.stability+opt.awareness+opt.cohesion;
+  S.log.push({day:sc.day,phase:sc.phase,label:injectNames(opt.log),impact:imp,tone:opt.tone});
+
+  const ob=document.getElementById('outcome-banner');
+  ob.className='outcome-banner '+opt.tone;
+  const deficitText=getDeficitCarryText(opt);
+  document.getElementById('outcome-text').textContent=injectNames(opt.outcome)+(deficitText?` ${deficitText}`:'');
+  const pts=[[opt.stability,'Stability'],[opt.awareness,'Awareness'],[opt.cohesion,'Cohesion']]
+    .filter(x=>x[0]!==0).map(x=>`${x[1]} ${x[0]>0?'+':''}${x[0]}`).join(' \u00b7 ');
+  document.getElementById('outcome-pts').textContent=pts||'No change';
+  document.getElementById('outcome-area').style.display='block';
+
+  const futureText=[
+    deficitText,
+    opt.factors&&opt.factors.length>0&&opt.quality!=='best'?'A human factor has entered the system.':''
+  ].filter(Boolean).join(' ');
+  if(futureText){
+    const csn=document.getElementById('cascade-note');
+    csn.textContent=futureText;csn.style.display='block';
+  }
+
+  updateBars();updateSb();
+  document.getElementById('confirm-btn').style.display='none';
+  document.querySelectorAll('.option-btn').forEach(b=>b.disabled=true);
+
+  const total=S.res.stability+S.res.awareness+S.res.cohesion;
+  const isLast=S.scIdx>=SCENARIOS.length-1;
+  const nb=document.getElementById('next-btn');
+  if(S.res.stability<=0||S.res.awareness<=0||S.res.cohesion<=0||total<=0){
+    nb.textContent='View Debrief';nb.onclick=()=>showDebrief(false);
+  }else if(isLast){
+    nb.textContent='View Debrief';nb.onclick=()=>showDebrief(true);
+  }else{
+    nb.textContent='Next Scenario';nb.onclick=nextSc;
+  }
+  nb.style.display='inline-block';
+}
+
+function nextSc(){S.scIdx++;if(S.scIdx>=SCENARIOS.length)showDebrief(true);else renderSc()}
+
+function startTimer(){
+  S.timerSec=60;S.timerExp=false;
+  document.getElementById('timer-wrap').style.display='flex';
+  tickTimer();
+  S.timer=setInterval(()=>{
+    S.timerSec--;tickTimer();
+    if(S.timerSec<=0){
+      killTimer();S.timerExp=true;
+      const cb=document.getElementById('confirm-btn');
+      cb.textContent='Time\'s up \u2014 apply decision';
+      cb.disabled=false;cb.className='btn btn-danger';
+    }
+  },1000);
+}
+function tickTimer(){
+  const s=S.timerSec;
+  document.getElementById('timer-num').textContent=s;
+  const offset=138.23*(1-s/60);
+  document.getElementById('timer-ring').setAttribute('stroke-dashoffset',offset);
+  const col=s>20?'var(--awareness)':s>8?'var(--warning)':'var(--danger)';
+  document.getElementById('timer-ring').setAttribute('stroke',col);
+  document.getElementById('timer-num').style.color=col;
+}
+function killTimer(){if(S.timer){clearInterval(S.timer);S.timer=null}}
+
+function updateBars(){
+  const r=S.res;
+  [
+    {valId:'rv-stability',barId:'rb-stability',cardId:'res-card-stability',val:r.stability,max:RESOURCE_MAX.stability},
+    {valId:'rv-awareness',barId:'rb-awareness',cardId:'res-card-awareness',val:r.awareness,max:RESOURCE_MAX.awareness},
+    {valId:'rv-cohesion',barId:'rb-cohesion',cardId:'res-card-cohesion',val:r.cohesion,max:RESOURCE_MAX.cohesion}
+  ].forEach(({valId,barId,cardId,val,max})=>{
+    document.getElementById(valId).textContent=val;
+    const pct=Math.max(0,val/max*100);
+    document.getElementById(barId).style.width=pct+'%';
+    const card=document.getElementById(cardId);
+    if(card){
+      if(val<=Math.ceil(max*0.25)&&val>0)card.classList.add('res-danger');
+      else card.classList.remove('res-danger');
+    }
+  });
+}
+
+function updateSb(){
+  const sb=document.getElementById('scoreboard');
+  sb.style.display='block';
+  const my=S.res.stability+S.res.awareness+S.res.cohesion;
+  const all=[{name:S.teamName,s:my,me:true},...S.others].sort((a,b)=>b.s-a.s);
+  document.getElementById('score-rows').innerHTML=all.map((t,i)=>
+    `<div class="score-row${t.me?' active-team':''}"><span>${i+1}. ${t.name}${t.me?' (you) \u2605':''}</span><span style="font-weight:700">${t.s}/50</span></div>`
+  ).join('');
+}
+
+function showDebrief(success){
+  killTimer();
+  const r=S.res;const total=r.stability+r.awareness+r.cohesion;
+
+  const hasCrossing=S.flags.includes('brief_solid')&&S.flags.includes('gear_complete')&&S.flags.includes('assertiveness_summit');
+  const hasIncident=S.flags.includes('crevasse_worsened')||S.flags.includes('summit_incident')||S.flags.includes('descent_incident')||S.flags.includes('anchor_risk');
+  const hasNormsDeep=S.flags.includes('norms_deep');
+
+  let title,sub;
+  if(r.stability<=0||r.awareness<=0||r.cohesion<=0||total<=0){
+    title='Expedition Ended — System Failure';
+    sub='The cumulative weight of human factors exceeded what the team could carry.';
+  } else if(hasIncident&&total<20){
+    title='Expedition Returned — Significant Incidents';
+    sub='The icefield exposed what the team\'s earlier decisions had obscured.';
+  } else if(hasCrossing&&total>=42){
+    title='Icefield Crossed — Exceptional Team Performance';
+    sub='A team that maintained awareness, spoke up, and held its standards under sustained pressure.';
+  } else if(total>=32){
+    title='Icefield Crossed — With Lessons Earned';
+    sub='The crossing is complete. Human factors left marks. The debrief will show you where.';
+  } else {
+    title='Icefield Crossed — Under Significant Cost';
+    sub='The team made it through. Reflect carefully on what accumulated in the silence.';
+  }
+
+  document.getElementById('db-title').textContent=title;
+  document.getElementById('db-sub').textContent=sub;
+  document.getElementById('fs-stability').textContent=r.stability;
+  document.getElementById('fs-awareness').textContent=r.awareness;
+  document.getElementById('fs-cohesion').textContent=r.cohesion;
+
+  let narr=`Your team finished with ${total} out of 50 points — Team Stability: ${r.stability}/20, Situational Awareness: ${r.awareness}/15, Team Cohesion: ${r.cohesion}/15.\n\n`;
+  if(S.flags.includes('brief_incomplete'))narr+='The incomplete briefing on Day 1 seeded a knowledge gap that appeared every time the team needed shared understanding. Information does not distribute itself. ';
+  if(S.flags.includes('gear_unchecked'))narr+='Departing with unchecked gear on Day 2 was the first act of complacency. It normalised the pattern that followed. ';
+  if(S.flags.includes('route_deviated'))narr+='The silent deviation on Day 5 is a textbook human-factors incident: lack of communication and lack of assertiveness operating simultaneously. Nobody said anything, and the team drifted off-route. ';
+  if(S.flags.includes('slow_norm_embedded'))narr+='The unspoken norm protecting {PLAYER_B}\'s self-assessment accumulated across the expedition as a structural block on honest communication. ';
+  if(S.flags.includes('crevasse_worsened'))narr+='The crevasse incident on Day 20 compounded because multiple voices created noise rather than a clear command. Teamwork under crisis requires a designated single voice — not democratic debate. ';
+  if(S.flags.includes('fatigue_embedded'))narr+='Fatigue was allowed to become invisible. By the time it was named, it had already reshaped the team\'s standard of care. ';
+  if(S.flags.includes('pressure_driven'))narr+='The weather window decision on Day 36 was driven by the environment outside the team, not the state of the team itself. Pressure shaped the decision before anyone had checked what the team could actually sustain. ';
+  if(S.flags.includes('norms_deep'))narr+='The normalisation of skipped protocols after Day 40 is the most insidious human factor in operation: Norms. By the time it is visible, it is already structural. ';
+  if(S.flags.includes('assertiveness_summit'))narr+='Calling stop on the summit ridge was the expedition\'s most important moment of assertiveness. One voice against the silence of pressure. ';
+  document.getElementById('db-narrative').textContent=injectNames(narr);
+
+  /* DIRTY DOZEN REVEAL */
+  const uniqueFactors=[...new Set(S.activeFactors)];
+  const triggeredCount=uniqueFactors.length;
+  const badge=document.getElementById('dd-count-badge');
+  badge.textContent=`${triggeredCount} of 12`;
+  badge.className='dd-count-badge '+(triggeredCount<=3?'low':triggeredCount<=7?'mid':'high');
+
+  const grid=document.getElementById('dd-grid');grid.innerHTML='';
+  DIRTY_DOZEN.forEach(dd=>{
+    const timesTriggered=S.activeFactors.filter(f=>f===dd.id).length;
+    const isTriggered=timesTriggered>0;
+    const card=document.createElement('div');
+    card.className='dd-card '+(isTriggered?'triggered':'clean');
+    card.innerHTML=`
+      <div class="dd-num">Factor ${dd.n} of 12</div>
+      ${isTriggered?`<div class="dd-count-tag">${timesTriggered}x activated</div>`:''}
+      <div class="dd-name">${dd.name}</div>
+      <div class="dd-desc">${dd.desc}</div>
+      ${isTriggered?`<div class="dd-learning">${dd.learning}</div>`:''}
+    `;
+    grid.appendChild(card);
+  });
+
+  /* DECISION LOG */
+  document.getElementById('db-log').innerHTML=S.log.map(d=>
+    `<div class="log-item"><span class="log-day">Day ${d.day}</span><span class="log-text">${d.label}</span><span class="log-impact ${d.tone}">${d.impact>0?'+':''}${d.impact}</span></div>`
+  ).join('');
+
+  /* PSYCH DEBRIEF */
+  const archs=[...new Set(S.players.map(p=>{const a=ARCHETYPES.find(x=>x.id===p.arch);return a?a.name:null}).filter(Boolean))];
+  const highFactors=uniqueFactors.map(id=>DIRTY_DOZEN.find(d=>d.id===id)).filter(Boolean).map(d=>d.name);
+  let psych=`Your team brought the following archetypes: ${archs.join(', ')}.\n\n`;
+  if(highFactors.length>0){
+    psych+=`The human factors most present in your team's decisions were: ${highFactors.slice(0,4).join(', ')}. `;
+    psych+=`These are not failures of character. They are patterns — shaped by the environment, the group dynamics, and the norms that developed, often without anyone deciding they should.\n\n`;
+  }
+  psych+=`The Dirty Dozen framework used in BREAK POINT was developed in aviation accident analysis but applies directly to any team operating under pressure, fatigue, and time constraints. The factors are not independent. Lack of communication enables lack of assertiveness. Fatigue enables complacency. Norms make all of them invisible.\n\nThe question this debrief is designed to surface is not: what went wrong? It is: when did we know something was wrong, and what stopped us from saying it?`;
+  document.getElementById('db-psych').textContent=psych;
+
+  goTo('screen-debrief');
+}
+
+function resetGame(){
+  killTimer();
+  S={teamName:'Team Hielo',playerCount:6,players:[],curPlayer:0,res:getStartingResources(),scIdx:0,selected:null,flags:[],activeFactors:[],log:[],timer:null,timerSec:60,timerExp:false,gameOver:false,others:[],callerIdx:0};
+  document.getElementById('player-count-input').value=6;renderPlayerFields();
+  goTo('screen-landing');
+}
+
+function confirmStopExpedition(){
+  if(confirm('Stop the expedition and return to landing?')){resetGame();}
+}
+
+/* ============================================================
+   VISUAL ENHANCEMENTS
+   ============================================================ */
+(function initVisuals(){
+  const _goTo=goTo;
+  window.goTo=function(id){
+    _goTo(id);
+    const cv=document.getElementById('universe-canvas');
+    const dh=document.getElementById('debrief-header-block');
+    cv.style.display=(id==='screen-landing')?'block':'none';
+    const nav=document.getElementById('fixed-nav');
+    const fnHome=document.getElementById('fn-home');
+    const fnStop=document.getElementById('fn-stop');
+    if(id==='screen-landing'){nav.style.display='none'}
+    else if(id==='screen-game'){nav.style.display='flex';fnHome.style.display='none';fnStop.style.display='inline-block'}
+    else{nav.style.display='flex';fnHome.style.display='inline-block';fnStop.style.display='none'}
+    if(id==='screen-debrief'){
+      setTimeout(()=>animateScores(),350);
+      const title=document.getElementById('db-title').textContent||'';
+      if(title.toLowerCase().includes('exceptional')){
+        dh.classList.add('summit-win');
+        setTimeout(()=>launchConfetti(),600);
+      }else{
+        dh.classList.remove('summit-win');
+      }
+    }
+  };
+
+  function animateScores(){
+    [
+      {elId:'fs-stability',max:RESOURCE_MAX.stability},
+      {elId:'fs-awareness',max:RESOURCE_MAX.awareness},
+      {elId:'fs-cohesion',max:RESOURCE_MAX.cohesion}
+    ].forEach(({elId,max})=>{
+      const el=document.getElementById(elId);if(!el)return;
+      const target=parseInt(el.textContent)||0;el.textContent='0';
+      let cur=0;const steps=36;const inc=target/steps;let tick=0;
+      const iv=setInterval(()=>{
+        tick++;cur=Math.min(cur+inc,target);
+        el.textContent=Math.round(cur);
+        if(tick>=steps){clearInterval(iv);el.textContent=target}
+      },28);
+    });
+  }
+
+  function launchConfetti(){
+    const colors=['#4eb5d4','#6dcde8','#a8e6f0','#3dba7a','#ffffff','#edf0f8'];
+    for(let i=0;i<80;i++){
+      const dot=document.createElement('div');dot.className='confetti-dot';
+      const c=colors[Math.floor(Math.random()*colors.length)];
+      const x=Math.random()*100;const dur=1.8+Math.random()*2;
+      const delay=Math.random()*1.2;const size=4+Math.random()*6;
+      dot.style.cssText=`left:${x}vw;top:-10px;width:${size}px;height:${size}px;background:${c};animation-duration:${dur}s;animation-delay:${delay}s;border-radius:${Math.random()>0.5?'50%':'2px'}`;
+      document.body.appendChild(dot);
+      setTimeout(()=>dot.remove(),(dur+delay)*1000+400);
+    }
+  }
+
+  const canvas=document.getElementById('universe-canvas');
+  const ctx=canvas.getContext('2d');
+  let pts=[],rafId,rotY=0,rotX=0.18;
+
+  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;buildPts()}
+  function buildPts(){
+    pts=[];const n=220;
+    for(let i=0;i<n;i++){
+      const phi=Math.acos(1-2*(i+0.5)/n);
+      const theta=Math.PI*(1+Math.sqrt(5))*i;
+      const r=0.88+Math.random()*0.12;
+      pts.push({nx:r*Math.sin(phi)*Math.cos(theta),ny:r*Math.sin(phi)*Math.sin(theta),nz:r*Math.cos(phi),size:Math.random()*2.2+0.3,alpha:Math.random()*0.55+0.45,pulse:Math.random()*Math.PI*2,pSpd:Math.random()*0.022+0.007});
+    }
+  }
+
+  function project(nx,ny,nz,radius,cx,cy){
+    const cy_=Math.cos(rotY),sy=Math.sin(rotY);
+    const x1=nx*cy_-nz*sy;const z1=nx*sy+nz*cy_;
+    const cx_=Math.cos(rotX),sx=Math.sin(rotX);
+    const y1=ny*cx_-z1*sx;const z2=ny*sx+z1*cx_;
+    const fov=900;const sc=fov/(fov+z2*radius);
+    return{sx:cx+x1*radius*sc,sy:cy+y1*radius*sc,sz:z2,sc};
+  }
+
+  function draw(){
+    const w=canvas.width,h=canvas.height;
+    ctx.clearRect(0,0,w,h);
+    const cx=w/2,cy=h/2;
+    const radius=Math.min(w,h)*0.42;
+    rotY+=0.0012;
+    const projected=pts.map(p=>{
+      p.pulse+=p.pSpd;
+      const {sx,sy,sz,sc}=project(p.nx,p.ny,p.nz,radius,cx,cy);
+      const a=p.alpha*(0.7+0.3*Math.sin(p.pulse))*(sz+1)*0.5;
+      return{sx,sy,sz,sc,size:p.size*sc,a};
+    }).sort((a,b)=>a.sz-b.sz);
+    for(let i=0;i<projected.length;i++){
+      for(let j=i+1;j<projected.length;j++){
+        const dx=projected[i].sx-projected[j].sx;
+        const dy=projected[i].sy-projected[j].sy;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<70){
+          const la=(1-dist/70)*0.045*Math.min(projected[i].a,projected[j].a)*2.5;
+          ctx.beginPath();ctx.strokeStyle=`rgba(78,181,212,${la})`;ctx.lineWidth=0.5;
+          ctx.moveTo(projected[i].sx,projected[i].sy);ctx.lineTo(projected[j].sx,projected[j].sy);ctx.stroke();
+        }
+      }
+    }
+    projected.forEach(p=>{
+      ctx.beginPath();ctx.arc(p.sx,p.sy,Math.max(0.3,p.size),0,Math.PI*2);
+      ctx.fillStyle=`rgba(180,220,235,${p.a*0.85})`;ctx.fill();
+    });
+    rafId=requestAnimationFrame(draw);
+  }
+
+  resize();window.addEventListener('resize',resize);
+  draw();
+})();
+</script>
+
+<script src="assets/footer.js"></script>
+<script>window.renderExpeditionFooter();</script>
+</body>
+</html>

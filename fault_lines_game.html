@@ -270,12 +270,12 @@ label{font-family:'Space Grotesk',sans-serif;font-size:0.72rem;color:var(--muted
       <div style="font-size:0.72rem;color:var(--muted);margin-bottom:22px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.12em;text-transform:uppercase">Karsin Megacity · Coastal Region · Earthquake Response</div>
       <p>Karsin is fictional, but the pressures are real: fractured infrastructure, overwhelmed local services, outside teams arriving fast, and a population trying to survive the first 72 hours after a severe earthquake.</p>
       <p>You are leading an international response team through four phases: <span class="highlight">Activation & Deployment</span>, <span class="highlight">Arrival & Integration</span>, <span class="highlight">Operations</span>, and <span class="highlight">Consequence & Extraction</span>.</p>
-      <p>The visible metrics now start as a single 100-point briefing picture: <span class="highlight">Team Cohesion 30</span>, <span class="highlight">Team Fatigue 20</span>, <span class="highlight">Local Trust 20</span>, and <span class="highlight">Operational Discipline 30</span>. Two hidden metrics track what the team cannot see clearly: <span class="highlight">situational awareness</span> and <span class="highlight">failure cascade risk</span>. Small errors accumulate. Breakpoints do not announce themselves in advance.</p>
+      <p>The visible metrics now start as a single 100-point briefing picture: <span class="highlight">Team Cohesion 30</span>, <span class="highlight">Team Fatigue 20</span>, <span class="highlight">Local Trust 20</span>, and <span class="highlight">Operational Discipline 30</span>. Two hidden metrics track what the team cannot see clearly: <span class="highlight">situational awareness</span> and <span class="highlight">failure cascade risk</span>. Small errors accumulate. Breakpoints do not announce themselves in advance. High scores are intentionally difficult because even good decisions still consume people and margin.</p>
       <div class="briefing-grid">
         <div class="briefing-item"><strong>Cohesion drives the system</strong><span>When cohesion drops, discipline drops with it. Fragmented teams stop following their own standards cleanly.</span></div>
-        <div class="briefing-item"><strong>Fatigue is spent, not gained</strong><span>Fatigue points mostly go down by at least 1 on every decision. The number represents remaining capacity, not how tired people feel.</span></div>
+        <div class="briefing-item"><strong>Fatigue is spent, not gained</strong><span>Fatigue points mostly go down by at least 1 on every decision. Once fatigue starts to run low, cohesion drops faster and good options recover less than they cost.</span></div>
         <div class="briefing-item"><strong>Trust is external permission</strong><span>Local trust rises when you work through local structures and falls when speed or force displaces legitimacy.</span></div>
-        <div class="briefing-item"><strong>Discipline is execution quality</strong><span>Decisions that weaken cohesion or compress judgement will usually cost discipline as a second-order effect.</span></div>
+        <div class="briefing-item"><strong>Discipline is execution quality</strong><span>Decisions that weaken cohesion or compress judgement will usually cost discipline as a second-order effect. Clean wins are usually limited gains, not full recoveries.</span></div>
       </div>
       <div id="team-summary" class="mt-16"></div>
       <div class="btn-row mt-24">
@@ -412,6 +412,7 @@ label{font-family:'Space Grotesk',sans-serif;font-size:0.72rem;color:var(--muted
   </div>
   <div class="btn-row" style="justify-content:center;margin-top:8px;flex-wrap:wrap;gap:10px">
     <button class="btn btn-secondary" onclick="window.location.href='index.html'">&#8592; Home</button>
+    <button class="btn btn-secondary" onclick="generatePDFReport()" style="border-color:rgba(216,111,70,0.3);color:var(--accent)">&#8595; Download Report</button>
     <button class="btn btn-primary" onclick="resetGame()">Play Again</button>
   </div>
 </div>
@@ -548,15 +549,24 @@ The temptation is to keep it brief and clean. The value is in saying what actual
 ];
 
 const BREAKPOINT_LIBRARY={
-  public_argument:{id:'bp1',minute:'BREAK',phase:'Breakpoint Event',type:'crisis',title:'Breakpoint - public fracture',body:`The accumulation is now visible. A coordination disagreement breaks into public view in front of local staff. The issue is not the disagreement. The issue is that the team has stopped containing pressure well enough to think together.`,options:[
-    {id:'a',text:'Call a hard reset. One minute, one voice, one objective, then resume with explicit role assignments.',tone:'good',visible:{fatigue:1,cohesion:2,trust:1,discipline:2},hidden:{sa:2,risk:-6},factors:['leadership'],drift:-2,log:'Breakpoint reset used to re-establish one team',outcome:'The team regains a single rhythm before the fracture hardens.'},
-    {id:'b',text:'Push through and keep the disagreement private. Output matters more than the optics.',tone:'bad',visible:{fatigue:1,cohesion:-3,trust:-2,discipline:-2},hidden:{sa:-2,risk:7},factors:['leadership','communication'],drift:5,log:'Breakpoint was suppressed rather than reset',outcome:'The visible rupture closes, but the internal conditions stay active.'}]},
-  missed_survivor:{id:'bp2',minute:'BREAK',phase:'Critical Incident',type:'crisis',title:'Critical Incident - missed live-find signal',body:`A later sweep finds that a weak tapping pattern was heard earlier and dismissed as background noise. No one person caused it. The team had lost enough shared awareness that a fragile signal could not hold its shape.`,options:[
-    {id:'a',text:'Stop and run a disciplined re-brief on search calls, handovers, and who has authority to halt a sector.',tone:'good',visible:{fatigue:1,cohesion:1,trust:0,discipline:3},hidden:{sa:3,risk:-4},factors:['awareness'],drift:-1,log:'Critical incident used to restore search discipline',outcome:'The team cannot undo the miss, but it can stop treating it as random.'},
-    {id:'b',text:'Absorb the hit and keep searching. There is no time to dwell on one missed signal.',tone:'bad',visible:{fatigue:1,cohesion:-2,trust:-1,discipline:-3},hidden:{sa:-3,risk:8},factors:['awareness','norms'],drift:6,log:'Critical incident absorbed without system correction',outcome:'The search continues, but the team has learned the wrong lesson.'}]},
-  security_escalation:{id:'bp3',minute:'BREAK',phase:'Critical Incident',type:'crisis',title:'Critical Incident - security escalation',body:`Repeated drift has changed how the environment sees your team. A routine stop turns hostile after mixed messages, delayed promises, and visible friction. Local trust has converted into suspicion.`,options:[
-    {id:'a',text:'Stand down, reduce profile, put the municipal liaison forward, and communicate one message only.',tone:'good',visible:{fatigue:2,cohesion:1,trust:1,discipline:2},hidden:{sa:2,risk:-5},factors:['communication','cultural'],drift:-1,log:'Security escalation de-escalated through local liaison',outcome:'The team gives legitimacy back to the relationship rather than trying to win the interaction.'},
-    {id:'b',text:'Take control visibly and move the team through with forceful authority.',tone:'bad',visible:{fatigue:1,cohesion:-2,trust:-5,discipline:-1},hidden:{sa:-2,risk:9},factors:['leadership','cultural','pressure'],drift:7,log:'Security escalation handled through visible force',outcome:'The team gets through the moment and damages the space around the rest of the operation.'}]}
+  public_argument:{id:'bp1',minute:'BREAK',phase:'Breakpoint Event',type:'crisis',title:'Breakpoint - hospital aftershock',body:`An aftershock rolls through the district while your team is operating in a damaged clinic. Ceiling dust falls, the lights cut out, one stairwell partially fails, and the crowd outside surges back toward the entrance. Local staff are looking at your team for direction, but your own responders are split between patient care, self-protection, and trying to save equipment.
+
+This is where disciplined teams reset. Undisciplined teams become part of the chaos.`,options:[
+    {id:'a',text:'Keep treating the critical casualties while one small group checks the building and another holds the crowd.',tone:'ok',visible:{fatigue:2,cohesion:-1,trust:0,discipline:-2},hidden:{sa:-2,risk:6},factors:['pressure','coordination'],drift:4,log:'Aftershock managed through partial split-task improvisation',outcome:'The team keeps working, but nobody is quite sure which risk now has priority.'},
+    {id:'b',text:'Evacuate everyone downstairs immediately and sort the system out outside once the building is clear.',tone:'bad',visible:{fatigue:2,cohesion:-2,trust:-2,discipline:-3},hidden:{sa:-3,risk:8},factors:['leadership','communication'],drift:6,log:'Aftershock triggered a rapid full evacuation',outcome:'Bodies are moved quickly, but triage collapses and the crowd reads the movement as panic.'},
+    {id:'c',text:'Stop treatment for 90 seconds, confirm structural safety, account for every team member, re-establish triage zones with the local nurse, then resume.',tone:'good',visible:{fatigue:1,cohesion:3,trust:2,discipline:4},hidden:{sa:4,risk:-8},factors:['leadership'],drift:-3,log:'Aftershock reset used to rebuild triage and structural control',outcome:'The pause feels expensive, but it restores one shared picture of the clinic before more harm accumulates.'}]},
+  missed_survivor:{id:'bp2',minute:'BREAK',phase:'Critical Incident',type:'crisis',title:'Critical Incident - secondary fire and fuel rumour',body:`A secondary fire starts near a damaged fuel depot two districts away. Rumours spread immediately that toxic smoke is moving toward your overnight site. Local residents begin to move. Your team receives three conflicting messages: shelter in place, move east, or support evacuation at a nearby school compound. The municipal liaison cannot confirm which message is current.
+
+If the team does not reset its information discipline now, the environment will choose for you.`,options:[
+    {id:'a',text:'Move immediately with the crowd before the roads close. Clarity can be found on the move.',tone:'bad',visible:{fatigue:2,cohesion:-2,trust:-2,discipline:-3},hidden:{sa:-4,risk:9},factors:['pressure','awareness','communication'],drift:7,log:'Fire rumour triggered movement before verification',outcome:'The team stays mobile but loses control of its information picture and route logic.'},
+    {id:'b',text:'Split the team. One group checks smoke direction and one starts relocation of the overnight site.',tone:'ok',visible:{fatigue:2,cohesion:-1,trust:0,discipline:-2},hidden:{sa:-2,risk:5},factors:['coordination','communication'],drift:4,log:'Fire rumour handled through split verification and movement',outcome:'Useful fragments of information arrive, but they do not arrive quickly enough to give the whole team one answer.'},
+    {id:'c',text:'Freeze movement for a short reset, verify one command channel only, then move as one team under one message.',tone:'good',visible:{fatigue:1,cohesion:3,trust:2,discipline:4},hidden:{sa:4,risk:-7},factors:['communication'],drift:-3,log:'Fire rumour reset through one verified channel and unified movement',outcome:'The team loses a few minutes and regains control of its actions. That trade is worth it.'}]},
+  security_escalation:{id:'bp3',minute:'BREAK',phase:'Critical Incident',type:'crisis',title:'Critical Incident - missed survivor, public exposure',body:`A family member insists someone is still alive in a building your team already marked and cleared. A local volunteer says they heard tapping earlier, but the signal was dismissed during a rushed handover. Now local responders, bystanders, and cameras are present. If the team resets badly here, it loses internal trust and public credibility at the same time.
+
+This is not only a search problem. It is a leadership problem under public pressure.`,options:[
+    {id:'a',text:'Admit uncertainty, reopen the search with one leader controlling all comms, and run a disciplined fresh clearance.',tone:'good',visible:{fatigue:2,cohesion:2,trust:2,discipline:3},hidden:{sa:3,risk:-6},factors:['awareness'],drift:-2,log:'Missed-survivor report handled through disciplined controlled re-search',outcome:'The team cannot erase the miss, but it does show that it can respond honestly and systematically once the miss is exposed.'},
+    {id:'b',text:'Defend the original clearance and refuse to reopen without stronger evidence. The team cannot be seen second-guessing itself in public.',tone:'bad',visible:{fatigue:1,cohesion:-3,trust:-4,discipline:-2},hidden:{sa:-3,risk:8},factors:['leadership','assertiveness','communication'],drift:6,log:'Original clearance defended in public despite challenge',outcome:'The posture protects authority for a moment and damages legitimacy for much longer.'},
+    {id:'c',text:'Reopen immediately with everyone available so the team is seen acting fast and decisively.',tone:'ok',visible:{fatigue:2,cohesion:-1,trust:1,discipline:-3},hidden:{sa:-2,risk:6},factors:['pressure','coordination'],drift:5,log:'Missed-survivor report answered with rapid full-team re-entry',outcome:'The urgency is visible, but the same rushed conditions that created the miss begin to reappear.'}]}
 };
 
 function visualUrl(prompt){
@@ -564,7 +574,6 @@ function visualUrl(prompt){
 }
 
 const STORY_VISUALS={
-  sc01:{src:visualUrl('fictional earthquake response in Karsin megacity, international disaster team building supply manifest in a dim airport operations room, cracked windows, maps, orange emergency light, cinematic documentary realism, consistent characters, no text'),caption:'The team is still outside the disaster zone, but the quality of this room will shape the rest of the night.'},
   sc02:{src:visualUrl('same fictional Karsin earthquake response story, responder ill and dehydrated in departure lounge, medical bags and airport glass behind, teammates deciding whether to deploy, cinematic documentary realism, consistent characters, no text'),caption:'Capacity pressure starts before the team even leaves. The first standard is usually a health standard.'},
   sc04:{src:visualUrl('same fictional Karsin earthquake story, damaged district clinic surrounded by desperate crowd, local nurse and international responders setting triage line, dust, blue tarps, cinematic documentary realism, consistent characters, no text'),caption:'Arrival is loud. The first question is whether the team joins the local system or competes with it.'},
   sc05:{src:visualUrl('same fictional Karsin earthquake response, shaken translator beside stolen bag during aid unload, responders checking manifests and municipal contacts, damaged street, cinematic documentary realism, consistent characters, no text'),caption:'A single theft can distort the whole information picture when trust and translation are carrying the operation.'},
@@ -573,18 +582,33 @@ const STORY_VISUALS={
   sc08:{src:visualUrl('same fictional Karsin earthquake response, injured search and rescue dog with handler beside unstable rebar void, rescue team slowing search tempo, cinematic documentary realism, consistent characters, no text'),caption:'The team is now deciding whether capability is something to manage or something to spend.'},
   sc09:{src:visualUrl('same fictional Karsin earthquake response, families watching a visible body in unstable apartment block, local incident commander holding line with international team, dusk dust light, cinematic documentary realism, consistent characters, no text'),caption:'Humanitarian pressure and structural caution now sit in the same frame. The decision will echo beyond this building.'},
   sc12:{src:visualUrl('same fictional Karsin earthquake response story at dawn, municipal coordination lead and exhausted international team in short extraction debrief near air bridge, helicopters and damaged skyline behind, cinematic documentary realism, consistent characters, no text'),caption:'The final scene is quieter. What the team says here decides whether the response ends as noise or as learning.'},
-  bp1:{src:visualUrl('same fictional Karsin earthquake response, public disagreement between responders in front of local staff at aid point, visible stress, fractured team posture, cinematic documentary realism, consistent characters, no text'),caption:'The fracture is no longer hidden inside the team. Other people can now see the drift.'},
-  bp2:{src:visualUrl('same fictional Karsin earthquake response, search team realising a live-find signal was missed in dark rubble corridor, headlamps, dust, stunned faces, cinematic documentary realism, consistent characters, no text'),caption:'The system has narrowed enough that a weak signal no longer holds. This is what hidden drift looks like when it becomes visible.'},
-  bp3:{src:visualUrl('same fictional Karsin earthquake response, tense street stop becoming hostile after mixed messages, municipal liaison stepping forward, responders lowering profile, cinematic documentary realism, consistent characters, no text'),caption:'When local trust falls far enough, the environment starts responding to the team as a problem of its own.'}
+  bp1:{src:visualUrl('same fictional Karsin earthquake response, aftershock inside damaged district clinic, dust falling from ceiling, responders pausing treatment to re-establish triage with local nurse, crowd surging outside, cinematic documentary realism, consistent characters, no text'),caption:'The clinic is no longer stable. The team either resets the system now or absorbs the aftershock into a larger failure.'},
+  bp2:{src:visualUrl('same fictional Karsin earthquake response, secondary fire near fuel depot, smoke on horizon, residents moving with bags, international team and municipal liaison checking one radio channel before relocation, cinematic documentary realism, consistent characters, no text'),caption:'Rumour spreads faster than command. The reset here is about information discipline before movement.'},
+  bp3:{src:visualUrl('same fictional Karsin earthquake response, family pointing back to previously cleared rubble building, cameras and local responders watching, team leader reopening search in controlled way, cinematic documentary realism, consistent characters, no text'),caption:'A missed signal is now public. The team has one chance to recover trust through a disciplined reset.'}
+};
+
+const REPORT_CONFIG={
+  expedition:'DISASTER RESPONSE: FAULT LINES',
+  subtitle:'Karsin Megacity · International Earthquake Response Module',
+  duration:'60-minute team debrief simulation',
+  accentColor:'#d86f46',
+  accent2Color:'#4a9ece',
+  references:[
+    {name:'WHO Emergency Medical Teams',url:'https://www.who.int/emergencies/partners/emergency-medical-teams'},
+    {name:'WHO EMT Minimum Standards',url:'https://www.who.int/publications/i/item/9789240029330'},
+    {name:'WHO Nepal Earthquake Response 2015',url:'https://www.who.int/news-room/detail/29-04-2015-who-coordinating-the-health-response-to-nepal-earthquake-working-to-prevent-spread-of-disease'},
+    {name:'WHO Haiti Earthquake Health Response',url:'https://www.who.int/news/item/11-12-2010-who-spearheads-health-response-to-earthquake-in-haiti'},
+    {name:'IFRC Türkiye and Syria Earthquakes',url:'https://www.ifrc.org/press-release/ifrc-calls-long-term-support-and-solidarity-people-turkiye-and-syria'}
+  ]
 };
 
 function scaleVisibleDelta(delta){
   const d={fatigue:0,cohesion:0,trust:0,discipline:0,...(delta||{})};
   const scaled={
     fatigue:d.fatigue>0?-Math.max(1,Math.min(4,Math.round(d.fatigue/2)||1)):d.fatigue===0?-1:Math.min(-1,d.fatigue),
-    cohesion:d.cohesion>0?Math.min(3,Math.max(1,Math.round(d.cohesion/2))):d.cohesion<0?-Math.min(4,Math.max(1,Math.round(Math.abs(d.cohesion)/1.5))):0,
-    trust:d.trust>0?Math.min(3,Math.max(1,Math.round(d.trust/2))):d.trust<0?-Math.min(4,Math.max(1,Math.round(Math.abs(d.trust)/2))):0,
-    discipline:d.discipline>0?Math.min(3,Math.max(1,Math.round(d.discipline/2))):d.discipline<0?-Math.min(4,Math.max(1,Math.round(Math.abs(d.discipline)/1.5))):0
+    cohesion:d.cohesion>0?Math.min(2,Math.max(1,Math.round(d.cohesion/2))):d.cohesion<0?-Math.min(4,Math.max(1,Math.round(Math.abs(d.cohesion)/1.4))):0,
+    trust:d.trust>0?Math.min(2,Math.max(1,Math.round(d.trust/2.5))):d.trust<0?-Math.min(4,Math.max(1,Math.round(Math.abs(d.trust)/1.8))):0,
+    discipline:d.discipline>0?Math.min(2,Math.max(1,Math.round(d.discipline/2.5))):d.discipline<0?-Math.min(4,Math.max(1,Math.round(Math.abs(d.discipline)/1.4))):0
   };
   return scaled;
 }
@@ -657,6 +681,7 @@ function getCurrentScenario(){return S.injected||SCENARIOS[S.currentIndex]}
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
 function killTimer(){if(S.timer){clearInterval(S.timer);S.timer=null}}
 function applyVisible(delta){
+  const startingFatigue=S.res.fatigue;
   const applied={fatigue:0,cohesion:0,trust:0,discipline:0,...(delta||{})};
   if(applied.fatigue===0)applied.fatigue=-1;
 
@@ -668,8 +693,20 @@ function applyVisible(delta){
     if(applied.cohesion>=2)applied.trust+=1;
   }
 
+  if(applied.fatigue<=-1)applied.cohesion-=1;
   if(applied.fatigue<=-2)applied.discipline-=1;
-  if(S.res.fatigue+applied.fatigue<=6)applied.cohesion-=1;
+  if(startingFatigue<=12){
+    applied.cohesion-=1;
+    if(applied.trust>0)applied.trust-=1;
+  }
+  if(startingFatigue<=8){
+    applied.cohesion-=1;
+    applied.discipline-=1;
+  }
+  if(startingFatigue+applied.fatigue<=5){
+    applied.cohesion-=1;
+    applied.trust-=1;
+  }
 
   S.res.fatigue=clamp(S.res.fatigue+applied.fatigue,0,RESOURCE_MAX.fatigue);
   S.res.cohesion=clamp(S.res.cohesion+applied.cohesion,0,RESOURCE_MAX.cohesion);
@@ -821,8 +858,8 @@ function metricChangeText(delta){
 
 function currentHealthState(){
   const total=S.res.fatigue+S.res.cohesion+S.res.trust+S.res.discipline;
-  if(S.res.cohesion<=8||S.res.discipline<=8||S.res.fatigue<=4||total<=35||S.hidden.sa<=20||S.hidden.risk>=85)return 'collapse';
-  if(S.res.trust<=8||S.res.fatigue<=8||total<=55||S.hidden.risk>=65)return 'fragile';
+  if(S.res.cohesion<=10||S.res.discipline<=9||S.res.fatigue<=4||total<=42||S.hidden.sa<=24||S.hidden.risk>=82)return 'collapse';
+  if(S.res.trust<=9||S.res.fatigue<=10||S.res.cohesion<=16||total<=64||S.hidden.risk>=58)return 'fragile';
   return 'stable';
 }
 
@@ -927,8 +964,8 @@ function showDebrief(){
   document.getElementById('db-narrative').textContent=[
     `The team started with 100 visible points distributed as Cohesion 30, Fatigue 20, Local Trust 20, and Discipline 30. It finished with ${total}/100 remaining.`,
     `End state: fatigue ${S.res.fatigue}/20, cohesion ${S.res.cohesion}/30, local trust ${S.res.trust}/20, operational discipline ${S.res.discipline}/30.`,
-    S.res.cohesion<=12?'Cohesion fell far enough that discipline could not hold its line. That is the main visible story of this run.':'Cohesion remained strong enough to protect at least part of the team standard under pressure.',
-    S.res.fatigue<=8?'Fatigue capacity was spent down aggressively. Later decisions were being made with reduced patience and reduced execution margin.':'Fatigue was spent, but not so fast that the team completely lost its working reserve.',
+    S.res.cohesion<=12?'Cohesion fell far enough that discipline could not hold its line. That is the main visible story of this run.':'Cohesion remained strong enough to protect at least part of the team standard under pressure, which matters because this scoring model lets fatigue erode cohesion quickly.',
+    S.res.fatigue<=8?'Fatigue capacity was spent down aggressively. Later decisions were being made with reduced patience and reduced execution margin, and the score model translated that directly into cohesion loss.':'Fatigue was spent, but not so fast that the team completely lost its working reserve.',
     S.flags.includes('bp_public_argument')?'The first breakpoint came when pressure escaped the team boundary and became visible to others.':'The team avoided a public fracture point.',
     S.flags.includes('bp_missed_survivor')?'Situational awareness fell low enough for a weak but meaningful signal to be lost.':'Situational awareness degraded, but not far enough to trigger a live-find miss.',
     S.flags.includes('bp_security_escalation')?'Failure cascade risk rose high enough that the environment began reacting to the team rather than just the disaster.':'Failure cascade risk remained below the security escalation threshold.'
@@ -952,13 +989,59 @@ function showDebrief(){
   document.getElementById('db-log').innerHTML=S.log.map(item=>`<div class="log-item"><span class="log-step">${item.step}</span><span class="log-text">${item.label}</span><span class="log-impact ${item.tone}">${item.impact>0?'+':''}${item.impact}</span></div>`).join('');
 
   document.getElementById('db-insights').innerHTML=[
-    `<div class="insight-item"><strong>Scoring logic:</strong> Fatigue points represent remaining capacity, so most decisions spend at least 1 point. When cohesion fell, discipline usually fell with it.</div>`,
+    `<div class="insight-item"><strong>Scoring logic:</strong> Fatigue points represent remaining capacity, so most decisions spend at least 1 point. Fatigue now pulls cohesion down early, and once cohesion slips, discipline follows. Strong options usually limit damage rather than producing a perfect gain.</div>`,
     `<div class="insight-item"><strong>Communication:</strong> ${S.activeFactors.filter(x=>x==='communication').length>1?'Handover quality degraded repeatedly.':'Communication held best when it was made explicit rather than assumed.'}</div>`,
     `<div class="insight-item"><strong>Awareness:</strong> ${S.hidden.sa<45?'The team reacted late because it stopped refreshing its picture.':'The team protected its picture best when it paused to re-coordinate.'}</div>`,
-    `<div class="insight-item"><strong>Leadership:</strong> ${S.activeFactors.filter(x=>x==='leadership').length>1?'Leadership strain appeared when speed replaced structure.':'Leadership remained strongest when decisions were named aloud and roles were clear.'}</div>`
+    `<div class="insight-item"><strong>Leadership:</strong> ${S.activeFactors.filter(x=>x==='leadership').length>1?'Leadership strain appeared when speed replaced structure.':'Leadership remained strongest when decisions were named aloud and roles were clear.'}</div>`,
+    `<div class="insight-item"><strong>Real-world learning:</strong> The Karsin scenario is fictional, but the operating lessons are not. Haiti 2010 exposed how unmanaged incoming teams can overload a damaged system. Nepal 2015 showed the value of Ministry-led coordination and disciplined foreign medical team placement. Türkiye and Syria in 2023 reinforced that community trust and long-duration support matter as much as early surge speed.</div>`
   ].join('');
 
   goTo('screen-debrief');
+}
+
+function getRealWorldLessons(){
+  const lessons=[
+    {title:'National coordination before freelance action',content:'Karsin mirrors a pattern seen in major earthquake responses such as Haiti in 2010 and Nepal in 2015: outside teams are most useful when they integrate into the host system quickly rather than acting independently. The strongest teams arrive self-sufficient, accept tasking, and avoid becoming an additional logistics burden.'},
+    {title:'Self-sufficient medical teams protect local capacity',content:'WHO Emergency Medical Team standards were strengthened after Haiti and other sudden-onset disasters because too many teams historically arrived without enough internal support. The best-practice model is clear: international teams should bring their own operational package, fit into national coordination, and provide care without draining the local health system.'},
+    {title:'Trust, culture and communication affect access',content:'Recent disaster responses, including the Türkiye and Syria earthquakes, underline that access is social as well as physical. Teams that explain decisions, work through local leaders, and repair cultural missteps preserve the cooperation they will need later. That is why local trust is a real operational asset in this module, not a soft extra.'}
+  ];
+  if(S.flags.includes('bp_missed_survivor'))lessons.push({title:'Weak signals must be protected',content:'When teams become fatigued or fragmented, weak signals disappear first. In real collapsed-structure work that can mean missed survivors, duplicated tasks, or delayed withdrawal from unsafe spaces. The practical countermeasure is disciplined handover, explicit stop authority, and short re-briefs whenever the picture starts to blur.'});
+  return lessons;
+}
+
+function getMedicalNotes(){
+  const notes=[];
+  if(S.res.fatigue<=8)notes.push({title:'Fatigue management',content:'Remaining fatigue capacity ended low. In real deployments this is when communication, triage accuracy, and safety-check reliability start to degrade together. Best practice is enforced work-rest discipline, role simplification, hydration, and explicit removal of non-essential tasks.'});
+  if(S.log.some(item=>/ill responder|fatigue conflict|oxygen|dog|body recovery|translator/i.test(item.label)))notes.push({title:'Medical and welfare framing',content:'Several decisions in this run sat on the boundary between operations and care. That is realistic. International disaster teams repeatedly face medical-welfare dilemmas involving scarce oxygen, responder illness, working-animal welfare, body recovery timing, and public-facing triage choices. The best teams make those choices visibly, with clinical criteria and local counterparts present.'});
+  if(S.activeFactors.filter(x=>x==='resource').length>1)notes.push({title:'Resource ethics',content:'Repeated resource tradeoffs appeared in this playthrough. In real earthquake operations, scarce oxygen, transport, surgical capacity and clean-water support should be prioritised through transparent triage logic, documented decisions, and local-clinician involvement wherever possible.'});
+  if(!notes.length)notes.push({title:'Medical posture',content:'No major medical-management pattern dominated this run, which usually indicates that the team kept enough capacity to make careful decisions before clinical pressure became chaotic.'});
+  return notes;
+}
+
+function getLeadershipNotes(){
+  return[
+    {title:'Name the decision in the room',content:'Leadership under earthquake conditions is less about charisma than about reducing ambiguity. The teams that hold together are the ones that say out loud what the decision is, who owns it, what standard applies, and what will make them stop.'},
+    {title:'Cohesion protects execution',content:'This module intentionally links cohesion to discipline. That is not cosmetic. When teams fragment, standards decay quietly: handovers shorten, route checks soften, and local relationships become transactional. Rebuilding cohesion is often the fastest route back to safer execution.'},
+    {title:'Short debriefs prevent long failures',content:'Real disaster responses use repeated short debriefs because drift accumulates faster than people notice. A 3-minute reset after conflict, misrouting or public confusion is often more valuable than a perfect end-of-day review that comes too late.'}
+  ];
+}
+
+function generatePDFReport(){
+  const r=S.res;
+  const total=r.fatigue+r.cohesion+r.trust+r.discipline;
+  const dateStr=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  const decRows=S.log.map(d=>`<tr><td>${d.step}</td><td>${d.label}</td><td class="${d.tone}">${d.impact>0?'+':''}${d.impact}</td></tr>`).join('');
+  const factorRows=HUMAN_FACTORS.map(f=>`<tr><td>${f.name}</td><td>${S.activeFactors.filter(x=>x===f.id).length||0}</td><td>${f.desc}</td></tr>`).join('');
+  const medHtml=getMedicalNotes().map(m=>`<div class="section"><h3>${m.title}</h3><p>${m.content}</p></div>`).join('');
+  const ldHtml=getLeadershipNotes().map(l=>`<div class="section"><h3>${l.title}</h3><p>${l.content}</p></div>`).join('');
+  const rwHtml=getRealWorldLessons().map(l=>`<div class="section"><h3>${l.title}</h3><p>${l.content}</p></div>`).join('');
+  const refHtml=REPORT_CONFIG.references.map(rf=>`<li><a href="${rf.url}">${rf.name}</a></li>`).join('');
+  const ac=REPORT_CONFIG.accentColor;const a2=REPORT_CONFIG.accent2Color;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Debrief Report - ${REPORT_CONFIG.expedition}</title><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',Georgia,serif;font-size:11pt;color:#1a1a2e;line-height:1.72;background:#fff}.page{max-width:210mm;margin:0 auto;padding:14mm 18mm}h1{font-family:'Space Grotesk',sans-serif;font-size:26pt;font-weight:700;letter-spacing:-0.02em;color:#0d1117;margin-bottom:3px}h2{font-family:'Space Grotesk',sans-serif;font-size:13pt;font-weight:700;color:#0d1117;margin:22px 0 10px;padding-bottom:6px;border-bottom:2px solid #e4e4ee}h3{font-family:'Space Grotesk',sans-serif;font-size:10.5pt;font-weight:600;color:#1a1a2e;margin:0 0 6px}p{margin-bottom:10px;color:#2a2a3e;font-size:10pt}.eyebrow{font-family:'Space Grotesk',sans-serif;font-size:7.5pt;letter-spacing:0.22em;text-transform:uppercase;color:#999;margin-bottom:5px}.accent{color:${ac}}.rule{width:36px;height:3px;background:${ac};margin:10px 0 14px;border-radius:2px}.subtitle{font-size:10pt;color:#555;margin-bottom:2px}.meta-row{display:flex;gap:20px;flex-wrap:wrap;margin:14px 0;padding:12px 16px;background:#f7f8fc;border-radius:6px;border:1px solid #e8e8f0}.mi .label{font-family:'Space Grotesk',sans-serif;font-size:7pt;text-transform:uppercase;letter-spacing:0.12em;color:#999;margin-bottom:3px}.mi .val{font-weight:600;font-size:11pt;color:#1a1a2e}.sgrid{display:flex;gap:12px;margin:14px 0;flex-wrap:wrap}.sc{flex:1;min-width:120px;padding:14px 18px;border-radius:7px;border:1px solid #e8e8f0;text-align:center}.sc .slabel{font-family:'Space Grotesk',sans-serif;font-size:7pt;text-transform:uppercase;letter-spacing:0.12em;color:#999;margin-bottom:7px}.sc .sval{font-family:'Space Grotesk',sans-serif;font-size:24pt;font-weight:700}.sc .sdenom{font-size:8pt;color:#999;margin-top:3px}.sv-f{color:#dc4f4f}.sv-c{color:#3dba7a}.sv-t{color:${a2}}.sv-d{color:#d49a3a}table{width:100%;border-collapse:collapse;margin:10px 0;font-size:9.5pt}th{font-family:'Space Grotesk',sans-serif;font-size:7.5pt;text-transform:uppercase;letter-spacing:0.1em;color:#999;padding:7px 10px;border-bottom:2px solid #e8e8f0;text-align:left}td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.55}tr:last-child td{border-bottom:none}.good{color:#2d9e6a;font-weight:600}.ok{color:#c07030;font-weight:600}.bad{color:#c0303a;font-weight:600}.section{margin-bottom:12px;padding:12px 16px;background:#f9fafb;border-radius:5px;border-left:3px solid ${ac}}ul{padding-left:18px}li{margin:0 0 5px}.disc{font-size:7.5pt;color:#777;margin-top:22px;padding-top:14px;border-top:1px solid #e8e8f0;line-height:1.6}a{color:${ac};text-decoration:none}@media print{body{font-size:9.5pt}.page{padding:8mm 12mm}h2{page-break-after:avoid}.section,.sgrid,table{page-break-inside:avoid}}</style></head><body><div class="page"><div class="eyebrow">The Expedition Game - Post-Response Report</div><h1><span class="accent">${REPORT_CONFIG.expedition}</span></h1><div class="subtitle">${REPORT_CONFIG.subtitle}</div><div class="rule"></div><div class="meta-row"><div class="mi"><div class="label">Team</div><div class="val">${S.teamName}</div></div><div class="mi"><div class="label">Scenario</div><div class="val">${REPORT_CONFIG.duration}</div></div><div class="mi"><div class="label">Visible Score</div><div class="val">${total} / 100</div></div><div class="mi"><div class="label">Report Date</div><div class="val">${dateStr}</div></div></div><h2>Final Results</h2><div class="sgrid"><div class="sc"><div class="slabel">Fatigue</div><div class="sval sv-f">${r.fatigue}</div><div class="sdenom">/ 20</div></div><div class="sc"><div class="slabel">Cohesion</div><div class="sval sv-c">${r.cohesion}</div><div class="sdenom">/ 30</div></div><div class="sc"><div class="slabel">Local Trust</div><div class="sval sv-t">${r.trust}</div><div class="sdenom">/ 20</div></div><div class="sc"><div class="slabel">Discipline</div><div class="sval sv-d">${r.discipline}</div><div class="sdenom">/ 30</div></div></div><h2>Debrief Summary</h2><div class="section"><p>The team started with 100 visible points distributed as Cohesion 30, Fatigue 20, Local Trust 20, and Discipline 30. It finished with ${total}/100. Hidden system results were Situational Awareness ${S.hidden.sa}/100 and Failure Cascade Risk ${S.hidden.risk}/100.</p><p>${document.getElementById('db-narrative').textContent}</p></div><h2>Decision Log</h2><p style="font-size:9pt;color:#777;margin-bottom:8px">Decision records with the visible score effect recorded by the game engine.</p><table><thead><tr><th>Step</th><th>Decision Record</th><th>Impact</th></tr></thead><tbody>${decRows||'<tr><td colspan="3" style="color:#999">No decisions recorded.</td></tr>'}</tbody></table><h2>Human Factors</h2><table><thead><tr><th>Factor</th><th>Count</th><th>Description</th></tr></thead><tbody>${factorRows}</tbody></table><h2>Medical Notes</h2><p style="font-size:9pt;color:#777;margin-bottom:10px">Operational medical notes drawn from the way this playthrough managed illness, fatigue, scarce resources and responder welfare.</p>${medHtml}<h2>Decision-Making Notes</h2><p style="font-size:9pt;color:#777;margin-bottom:10px">Short debrief guidance to support facilitated discussion after the game.</p>${ldHtml}<h2>Real-World Learning</h2><p style="font-size:9pt;color:#777;margin-bottom:10px">Karsin is fictional. These lessons are informed by real international earthquake responses and Emergency Medical Team standards.</p>${rwHtml}<h2>Further Reading</h2><ul>${refHtml}</ul><div class="disc">This report is for training and debrief use. Karsin is fictional, but the learning design draws on WHO Emergency Medical Team guidance and lessons widely discussed after major earthquake responses including Haiti 2010, Nepal 2015, and Türkiye/Syria 2023. Medical and operational advice should always be adapted to real incident command, local authority guidance, and qualified clinical oversight.</div></div></body></html>`;
+  const w=window.open('','_blank','width=960,height=760');
+  if(!w){alert('Allow popups to download the report.');return;}
+  w.document.write(html);w.document.close();w.focus();
+  setTimeout(()=>{try{w.print()}catch(e){}},900);
 }
 
 function resetGame(){
