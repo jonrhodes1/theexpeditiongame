@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disaster Response: Fault Lines - The Expedition Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --void:#060910;
+  --deep:#0b1020;
+  --surface:rgba(10,15,30,0.94);
+  --surface2:rgba(16,24,46,0.88);
+  --glass:rgba(255,255,255,0.032);
+  --border:rgba(255,255,255,0.07);
+  --border-hi:rgba(255,255,255,0.14);
+  --text:#edf0f8;
+  --muted:#6070a0;
+  --accent:#d86f46;
+  --accent-hi:#e78a60;
+  --blue:#4a9ece;
+  --danger:#dc4f4f;
+  --success:#3dba7a;
+  --warning:#d49a3a;
+  --fatigue:#dc4f4f;
+  --cohesion:#3dba7a;
+  --trust:#4a9ece;
+  --discipline:#d49a3a;
+  --r:12px;
+  --r-lg:20px;
+}
+
+html{scroll-behavior:smooth}
+body{background:var(--void);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;font-size:15px;line-height:1.65}
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
+
+.screen{display:none}
+.screen.active{display:block;animation:screenIn 0.55s cubic-bezier(0.16,1,0.3,1) both}
+#screen-landing.active{display:flex !important;animation:landingIn 1s ease both}
+@keyframes screenIn{from{opacity:0;transform:translateY(18px) scale(0.99)}to{opacity:1;transform:none}}
+@keyframes landingIn{from{opacity:0}to{opacity:1}}
+
+#universe-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none}
+#screen-landing{position:fixed;inset:0;z-index:40;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:var(--void)}
+.shell{position:relative;z-index:20;background:var(--void);width:100%;max-width:860px;margin:0 auto;padding:0 18px 80px;min-height:100vh}
+
+.hero-bg{position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1920&q=80');background-size:cover;background-position:center 38%;opacity:0.14;z-index:0}
+.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(6,9,16,0.16) 0%,rgba(6,9,16,0.08) 35%,rgba(6,9,16,0.5) 75%,rgba(6,9,16,1) 100%)}
+.hero-content{position:relative;z-index:4;text-align:center;max-width:700px;padding:0 28px}
+.hero-eyebrow{font-family:'Space Grotesk',sans-serif;font-size:0.68rem;font-weight:500;letter-spacing:0.28em;text-transform:uppercase;color:var(--accent);margin-bottom:24px;opacity:0.9}
+.hero-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(3.7rem,10vw,8rem);font-weight:700;line-height:0.9;letter-spacing:-0.025em;color:var(--text);margin-bottom:12px}
+.hero-title .accent{color:var(--accent)}
+.hero-rule{width:36px;height:2px;background:var(--accent);margin:22px auto;border-radius:1px}
+.hero-sub{font-family:'Space Grotesk',sans-serif;font-size:0.72rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-bottom:36px}
+.hero-desc{font-size:1.02rem;line-height:1.88;color:rgba(237,240,248,0.7);max-width:560px;margin:0 auto 30px}
+.hero-meta{font-family:'Space Grotesk',sans-serif;font-size:0.72rem;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-bottom:38px}
+.hero-meta span{margin:0 12px}
+.btn-hero{display:inline-block;background:var(--accent);color:#07090f;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;padding:15px 44px;border:none;border-radius:2px;cursor:pointer;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden}
+.btn-hero::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0.12);opacity:0;transition:opacity 0.2s}
+.btn-hero:hover::after{opacity:1}
+.btn-hero:hover{transform:translateY(-3px);box-shadow:0 14px 44px rgba(216,111,70,0.28)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px 36px;margin-bottom:20px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.card h1{font-size:1.75rem;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:-0.015em}
+.card h2{font-size:1.3rem;font-weight:600;margin-bottom:14px;letter-spacing:-0.01em}
+.card h3{font-size:0.96rem;font-weight:600;color:var(--accent);margin-bottom:12px;letter-spacing:0.01em}
+.card p{color:rgba(237,240,248,0.76);margin-bottom:14px;line-height:1.82}
+.card p:last-child{margin-bottom:0}
+.card.photo-card{padding:0;overflow:hidden}
+.card-photo{width:100%;height:220px;object-fit:cover;display:block;opacity:0.66}
+.photo-body{padding:28px 36px 32px}
+
+.game-header{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:18px;backdrop-filter:blur(14px)}
+.logo{font-family:'Space Grotesk',sans-serif;font-size:1.02rem;font-weight:700;color:var(--accent);letter-spacing:0.04em}
+.subtitle{font-size:0.72rem;color:var(--muted);margin-top:2px;letter-spacing:0.03em}
+.hdr-right{font-family:'Space Grotesk',sans-serif;font-size:0.78rem;color:var(--muted);text-align:right}
+
+.resources{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:18px;backdrop-filter:blur(14px)}
+.res-card{border:1px solid transparent;border-radius:10px;padding:10px 8px 8px;text-align:center;min-height:72px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.res-value{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700;line-height:1;color:var(--text);letter-spacing:-0.02em}
+.res-label{font-family:'Space Grotesk',sans-serif;font-size:0.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;line-height:1.4}
+.res-card.fatigue .res-value{color:var(--fatigue)}
+.res-card.cohesion .res-value{color:var(--cohesion)}
+.res-card.trust .res-value{color:var(--trust)}
+.res-card.discipline .res-value{color:var(--discipline)}
+.res-danger{border-color:rgba(220,79,79,0.3);background:rgba(220,79,79,0.05)}
+
+.caller-banner{display:flex;align-items:center;gap:14px;padding:12px 18px;margin-bottom:18px;background:rgba(216,111,70,0.07);border:1px solid rgba(216,111,70,0.22);border-radius:var(--r)}
+.caller-label{font-family:'Space Grotesk',sans-serif;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);flex-shrink:0}
+.caller-name{font-family:'Space Grotesk',sans-serif;font-size:0.94rem;font-weight:700;color:var(--accent)}
+
+.tag{font-family:'Space Grotesk',sans-serif;font-size:0.66rem;padding:4px 12px;border-radius:2px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase}
+.tag-minute{background:rgba(74,158,206,0.1);color:var(--blue);border:1px solid rgba(74,158,206,0.2)}
+.tag-normal{background:rgba(255,255,255,0.045);color:var(--muted);border:1px solid var(--border)}
+.tag-crisis{background:rgba(220,79,79,0.1);color:var(--danger);border:1px solid rgba(220,79,79,0.22)}
+.tag-phase{background:rgba(216,111,70,0.08);color:var(--accent);border:1px solid rgba(216,111,70,0.18);font-size:0.6rem;letter-spacing:0.14em}
+.scenario-media{position:relative;width:100%;aspect-ratio:16/8.2;border-radius:var(--r);overflow:hidden;margin:0 0 18px;border:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.scenario-media img{width:100%;height:100%;object-fit:cover;display:block;opacity:0.72}
+.scenario-media::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(6,9,16,0.08) 0%,rgba(6,9,16,0.15) 45%,rgba(6,9,16,0.68) 100%)}
+.scenario-media-caption{position:absolute;left:18px;right:18px;bottom:16px;z-index:2;font-size:0.72rem;line-height:1.6;color:rgba(237,240,248,0.86)}
+.scenario-media-kicker{display:block;font-family:'Space Grotesk',sans-serif;font-size:0.56rem;text-transform:uppercase;letter-spacing:0.16em;color:rgba(237,240,248,0.62);margin-bottom:6px}
+.scenario-body{font-size:1rem;line-height:1.92;color:rgba(237,240,248,0.82);margin-bottom:26px;padding:24px 28px;background:rgba(255,255,255,0.022);border-left:2px solid var(--accent);border-radius:0 var(--r) var(--r) 0;white-space:pre-line}
+
+.system-notice{margin:-6px 0 18px;display:grid;gap:10px}
+.notice-item{padding:12px 16px;border-radius:var(--r);font-size:0.81rem;line-height:1.65;border:1px solid}
+.notice-item.delayed{background:rgba(74,158,206,0.06);border-color:rgba(74,158,206,0.2);color:rgba(237,240,248,0.78)}
+.notice-item.breakpoint{background:rgba(220,79,79,0.06);border-color:rgba(220,79,79,0.22);color:rgba(237,240,248,0.84)}
+
+.timer-wrap{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:16px 20px;background:rgba(220,79,79,0.055);border:1px solid rgba(220,79,79,0.18);border-radius:var(--r)}
+.timer-svg{position:relative;width:52px;height:52px;flex-shrink:0}
+.timer-svg svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:rgba(255,255,255,0.07);stroke-width:4}
+.ring-fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 0.9s linear,stroke 0.5s}
+.ring-num{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.06rem}
+.timer-label{font-size:0.8rem;color:var(--muted)}
+.timer-label strong{display:block;color:var(--text);margin-bottom:2px;font-family:'Space Grotesk',sans-serif;font-weight:600}
+
+.options{display:grid;gap:10px;margin-bottom:26px}
+.option-btn{background:var(--glass);border:1px solid var(--border);border-radius:var(--r);padding:17px 22px;cursor:pointer;text-align:left;color:var(--text);transition:all 0.22s cubic-bezier(0.4,0,0.2,1);font-size:0.91rem;line-height:1.66;width:100%;font-family:'Inter',sans-serif}
+.option-btn:hover:not(:disabled){border-color:rgba(216,111,70,0.38);background:rgba(216,111,70,0.04);transform:translateX(4px)}
+.option-btn.selected{border-color:var(--accent);background:rgba(216,111,70,0.06)}
+.option-btn:disabled{opacity:0.42;cursor:default;transform:none}
+.option-letter{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:50%;background:var(--accent);color:#07090f;font-size:0.65rem;font-weight:800;margin-right:12px;font-family:'Space Grotesk',sans-serif;flex-shrink:0;vertical-align:middle}
+
+.outcome-banner{border-radius:var(--r);padding:20px 24px;margin-bottom:20px;font-size:0.91rem;line-height:1.78}
+.outcome-banner.good{background:rgba(61,186,122,0.07);border:1px solid rgba(61,186,122,0.2)}
+.outcome-banner.ok{background:rgba(212,154,58,0.07);border:1px solid rgba(212,154,58,0.2)}
+.outcome-banner.bad{background:rgba(220,79,79,0.07);border:1px solid rgba(220,79,79,0.2)}
+.outcome-banner .pts{font-family:'Space Grotesk',sans-serif;font-weight:600;margin-top:10px;font-size:0.8rem;color:var(--muted)}
+.cascade-note{font-family:'Space Grotesk',sans-serif;font-size:0.78rem;color:var(--warning);padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px}
+
+.btn{font-family:'Space Grotesk',sans-serif;padding:12px 26px;border:none;border-radius:var(--r);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.24s cubic-bezier(0.4,0,0.2,1);letter-spacing:0.05em;text-transform:uppercase}
+.btn-primary{background:var(--accent);color:#08090f}
+.btn-primary:hover{background:var(--accent-hi);transform:translateY(-2px);box-shadow:0 10px 32px rgba(216,111,70,0.22)}
+.btn-secondary{background:var(--glass);color:var(--text);border:1px solid var(--border-hi)}
+.btn-secondary:hover{background:rgba(255,255,255,0.065)}
+.btn-danger{background:var(--danger);color:white}
+.btn:disabled{opacity:0.32;cursor:default;transform:none !important;box-shadow:none !important}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+
+.decision-log{margin:18px 0}
+.log-item{display:flex;gap:16px;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.81rem}
+.log-step{color:var(--accent);font-weight:700;min-width:68px;font-family:'Space Grotesk',sans-serif}
+.log-text{color:rgba(237,240,248,0.62);flex:1}
+.log-impact{font-weight:600;min-width:52px;text-align:right;font-family:'Space Grotesk',sans-serif}
+.log-impact.good{color:var(--success)}
+.log-impact.bad{color:var(--danger)}
+.log-impact.ok{color:var(--warning)}
+
+.debrief-photo-wrap{width:100%;height:260px;position:relative;overflow:hidden;border-radius:var(--r-lg) var(--r-lg) 0 0;margin-bottom:0}
+.debrief-photo{width:100%;height:100%;object-fit:cover;object-position:center 40%;opacity:0.55;display:block}
+.debrief-photo-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(6,9,16,0.3) 0%,rgba(6,9,16,0.85) 100%)}
+.debrief-header{text-align:center;padding:52px 20px 40px;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);margin-bottom:20px;backdrop-filter:blur(14px)}
+.debrief-rule{width:32px;height:2px;background:var(--accent);margin:0 auto 20px;border-radius:1px}
+.debrief-header h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:700;margin-bottom:10px;letter-spacing:-0.02em}
+.debrief-header p{color:var(--muted);font-size:0.95rem}
+
+.final-scores{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 20px}
+.final-score-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:26px 20px;text-align:center;backdrop-filter:blur(14px)}
+.final-score-card .label{font-family:'Space Grotesk',sans-serif;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.13em;margin-bottom:12px}
+.final-score-card .val{font-family:'Space Grotesk',sans-serif;font-size:2.4rem;font-weight:700;letter-spacing:-0.025em}
+.val.cohesion{color:var(--cohesion)}
+.val.trust{color:var(--trust)}
+.val.discipline{color:var(--discipline)}
+.score-denom{font-family:'Space Grotesk',sans-serif;font-size:0.68rem;color:var(--muted);margin-top:6px}
+
+.factor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:12px 0}
+.factor-card{border-radius:var(--r);padding:16px 18px;border:1px solid}
+.factor-card.triggered{background:rgba(220,79,79,0.06);border-color:rgba(220,79,79,0.22)}
+.factor-card.clean{background:rgba(255,255,255,0.015);border-color:var(--border);opacity:0.4}
+.factor-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.86rem;margin-bottom:6px}
+.factor-card.triggered .factor-name{color:var(--danger)}
+.factor-desc{font-size:0.77rem;line-height:1.6;color:rgba(237,240,248,0.58)}
+.factor-count{display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:2px;background:rgba(220,79,79,0.15);color:var(--danger);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.1em}
+
+.insight-list{display:grid;gap:10px}
+.insight-item{padding:12px 16px;border-radius:var(--r);background:rgba(255,255,255,0.025);border:1px solid var(--border);font-size:0.82rem;line-height:1.7;color:rgba(237,240,248,0.76)}
+.briefing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0 8px}
+.briefing-item{padding:14px 16px;border-radius:var(--r);background:rgba(255,255,255,0.02);border:1px solid var(--border)}
+.briefing-item strong{display:block;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;color:var(--text);margin-bottom:6px}
+.briefing-item span{font-size:0.77rem;line-height:1.65;color:rgba(237,240,248,0.7)}
+
+input[type=text],input[type=number]{background:rgba(255,255,255,0.038);border:1px solid var(--border-hi);border-radius:8px;padding:11px 16px;color:var(--text);font-size:0.91rem;width:100%;outline:none;transition:border-color 0.2s;font-family:'Inter',sans-serif}
+input[type=text]:focus,input[type=number]:focus{border-color:var(--accent)}
+label{font-family:'Space Grotesk',sans-serif;font-size:0.72rem;color:var(--muted);display:block;margin-bottom:6px;margin-top:16px;text-transform:uppercase;letter-spacing:0.09em}
+.setup-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.team-badge{display:inline-flex;align-items:center;gap:7px;background:var(--glass);border:1px solid var(--border);border-radius:3px;padding:5px 12px;font-size:0.77rem;margin:3px}
+.team-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.highlight{color:var(--accent);font-weight:600}
+.muted{color:var(--muted)}
+.mt-16{margin-top:16px}
+.mt-24{margin-top:24px}
+
+.fixed-nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:none;gap:8px;z-index:200;align-items:center}
+.fn-btn{font-family:'Space Grotesk',sans-serif;font-size:0.62rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:7px 18px;border-radius:3px;border:1px solid rgba(255,255,255,0.1);background:rgba(6,9,16,0.82);color:rgba(237,240,248,0.5);cursor:pointer;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transition:all 0.2s;white-space:nowrap}
+.fn-btn:hover{color:var(--accent);border-color:rgba(216,111,70,0.3);background:rgba(6,9,16,0.92)}
+.fn-stop{border-color:rgba(220,79,79,0.15)}
+.fn-stop:hover{color:var(--danger) !important;border-color:rgba(220,79,79,0.38) !important}
+
+@media(max-width:700px){
+  .resources{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .final-scores{grid-template-columns:1fr}
+  .setup-row{grid-template-columns:1fr}
+  .briefing-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .card{padding:22px 18px}
+  .photo-body{padding:22px 18px 28px}
+  .hero-title{font-size:clamp(3rem,16vw,5rem)}
+  .factor-grid{grid-template-columns:1fr}
+  .resources{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:10px}
+  .res-card{min-height:66px;padding:10px 6px 8px}
+  .res-value{font-size:1.08rem}
+  .res-label{font-size:0.52rem}
+}
+</style>
+<link rel="stylesheet" href="assets/footer.css">
+</head>
+<body>
+
+<canvas id="universe-canvas"></canvas>
+
+<div class="fixed-nav" id="fixed-nav">
+  <button class="fn-btn" id="fn-home" onclick="window.location.href='index.html'">&#8592; Home</button>
+  <button class="fn-btn fn-stop" id="fn-stop" style="display:none" onclick="confirmStopGame()">Stop Module</button>
+</div>
+
+<div id="screen-landing" class="screen active">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">The Expedition Game · Disaster Response Series</div>
+    <h1 class="hero-title">FAULT<br><span class="accent">LINES</span></h1>
+    <div class="hero-rule"></div>
+    <div class="hero-sub">Karsin Megacity · International Response · 60 Minutes</div>
+    <p class="hero-desc">An earthquake has broken Karsin into fragments. Roads are blocked, agencies are overloaded, and every decision changes what the team will face later. This is not a rescue simulator. It is a human factors game about judgement, leadership, and drift.</p>
+    <div class="hero-meta"><span>4 Phases</span><span>4-8 Players</span><span>Hidden Drift</span></div>
+    <button class="btn-hero" onclick="goTo('screen-setup')">Begin Response</button>
+  </div>
+</div>
+
+<div class="shell">
+
+<div id="screen-setup" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="card">
+    <h2>Response Team Setup</h2>
+    <p class="muted">Enter a team name and player names. The module rotates a caller for each scenario so the discussion keeps moving.</p>
+    <div class="setup-row">
+      <div><label for="team-name-input">Team Name</label><input type="text" id="team-name-input" placeholder="e.g. Karsin Task Group" maxlength="30"></div>
+      <div><label for="player-count-input">Players (1-8)</label><input type="number" id="player-count-input" min="1" max="8" value="6" oninput="renderPlayerFields()"></div>
+    </div>
+    <div id="player-name-fields" class="mt-16"></div>
+    <div class="btn-row mt-24">
+      <button class="btn btn-secondary" onclick="goTo('screen-landing')">Back</button>
+      <button class="btn btn-primary" onclick="showIntro()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-intro" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="card photo-card">
+    <img class="card-photo" src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1400&q=80" alt="Earthquake-affected city with emergency response activity" onerror="this.style.display='none'">
+    <div class="photo-body">
+      <h1>DISASTER RESPONSE: FAULT LINES</h1>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:22px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.12em;text-transform:uppercase">Karsin Megacity · Coastal Region · Earthquake Response</div>
+      <p>Karsin is fictional, but the pressures are real: fractured infrastructure, overwhelmed local services, outside teams arriving fast, and a population trying to survive the first 72 hours after a severe earthquake.</p>
+      <p>You are leading an international response team through four phases: <span class="highlight">Activation & Deployment</span>, <span class="highlight">Arrival & Integration</span>, <span class="highlight">Operations</span>, and <span class="highlight">Consequence & Extraction</span>.</p>
+      <p>The visible metrics now start as a single 100-point briefing picture: <span class="highlight">Team Cohesion 30</span>, <span class="highlight">Team Fatigue 20</span>, <span class="highlight">Local Trust 20</span>, and <span class="highlight">Operational Discipline 30</span>. Two hidden metrics track what the team cannot see clearly: <span class="highlight">situational awareness</span> and <span class="highlight">failure cascade risk</span>. Small errors accumulate. Breakpoints do not announce themselves in advance.</p>
+      <div class="briefing-grid">
+        <div class="briefing-item"><strong>Cohesion drives the system</strong><span>When cohesion drops, discipline drops with it. Fragmented teams stop following their own standards cleanly.</span></div>
+        <div class="briefing-item"><strong>Fatigue is spent, not gained</strong><span>Fatigue points mostly go down by at least 1 on every decision. The number represents remaining capacity, not how tired people feel.</span></div>
+        <div class="briefing-item"><strong>Trust is external permission</strong><span>Local trust rises when you work through local structures and falls when speed or force displaces legitimacy.</span></div>
+        <div class="briefing-item"><strong>Discipline is execution quality</strong><span>Decisions that weaken cohesion or compress judgement will usually cost discipline as a second-order effect.</span></div>
+      </div>
+      <div id="team-summary" class="mt-16"></div>
+      <div class="btn-row mt-24">
+        <button class="btn btn-primary" onclick="startGame()">Begin Module</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-game" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="game-header">
+    <div>
+      <div class="logo" id="hdr-name">Karsin Task Group</div>
+      <div class="subtitle">Disaster Response: Fault Lines · Karsin Megacity</div>
+    </div>
+    <div class="hdr-right">Minute <span id="hdr-minute">0</span> of 60 · Scenario <span id="hdr-sc">1</span> of 12</div>
+  </div>
+  <div class="resources">
+    <div class="res-card fatigue" id="res-card-fatigue">
+      <div class="res-value" id="rv-fatigue">20</div>
+      <div class="res-label">Team Fatigue</div>
+    </div>
+    <div class="res-card cohesion" id="res-card-cohesion">
+      <div class="res-value" id="rv-cohesion">30</div>
+      <div class="res-label">Team Cohesion</div>
+    </div>
+    <div class="res-card trust" id="res-card-trust">
+      <div class="res-value" id="rv-trust">20</div>
+      <div class="res-label">Local Trust</div>
+    </div>
+    <div class="res-card discipline" id="res-card-discipline">
+      <div class="res-value" id="rv-discipline">30</div>
+      <div class="res-label">Operational Discipline</div>
+    </div>
+  </div>
+  <div id="caller-banner" class="caller-banner" style="display:none">
+    <span class="caller-label">Caller</span>
+    <span class="caller-name" id="caller-name-display"></span>
+    <span style="font-size:0.78rem;color:var(--muted);margin-left:auto">Read the scenario aloud and name the team's decision.</span>
+  </div>
+  <div class="card">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
+      <span class="tag tag-minute" id="sc-minute-tag">Minute 0</span>
+      <span class="tag tag-normal" id="sc-type-tag">Decision</span>
+      <span class="tag tag-phase" id="sc-phase-tag">Activation & Deployment</span>
+    </div>
+    <h2 id="sc-title">Loading...</h2>
+    <div id="system-notice" class="system-notice" style="display:none"></div>
+    <div id="timer-wrap" style="display:none" class="timer-wrap">
+      <div class="timer-svg">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle class="ring-bg" cx="26" cy="26" r="22"/>
+          <circle class="ring-fg" id="timer-ring" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="0" stroke="var(--danger)"/>
+        </svg>
+        <div class="ring-num" id="timer-num">45</div>
+      </div>
+      <div class="timer-label"><strong>Time Pressure Active</strong>Delay shifts the team toward the default path.</div>
+    </div>
+    <div id="scenario-media" class="scenario-media" style="display:none">
+      <img id="scenario-media-img" alt="" onerror="this.parentElement.style.display='none'">
+      <div class="scenario-media-caption"><span class="scenario-media-kicker">Field Visual</span><span id="scenario-media-caption-text"></span></div>
+    </div>
+    <div class="scenario-body" id="sc-body"></div>
+    <div class="options" id="sc-options"></div>
+    <div id="outcome-area" style="display:none">
+      <div class="outcome-banner" id="outcome-banner">
+        <div id="outcome-text"></div>
+        <div class="pts" id="outcome-pts"></div>
+      </div>
+      <div id="cascade-note" class="cascade-note" style="display:none"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="confirm-btn" onclick="confirmChoice()" disabled>Confirm Decision</button>
+      <button class="btn btn-secondary" id="next-btn" onclick="nextSc()" style="display:none">Next Scenario</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-debrief" class="screen">
+  <div style="padding-top:44px"></div>
+  <div class="debrief-photo-wrap">
+    <img class="debrief-photo" src="https://images.unsplash.com/photo-1542382257-80dedb725088?auto=format&fit=crop&w=1920&q=80" alt="Urban disaster response aftermath" onerror="this.style.display='none'">
+    <div class="debrief-photo-overlay"></div>
+  </div>
+  <div class="debrief-header">
+    <div class="debrief-rule"></div>
+    <h1 id="db-title">Response Complete</h1>
+    <p id="db-sub"></p>
+  </div>
+  <div class="final-scores">
+    <div class="final-score-card">
+      <div class="label">Team Fatigue</div>
+      <div class="val" id="fs-fatigue" style="color:var(--fatigue)">0</div>
+      <div class="score-denom">/ 20</div>
+    </div>
+    <div class="final-score-card">
+      <div class="label">Team Cohesion</div>
+      <div class="val cohesion" id="fs-cohesion">0</div>
+      <div class="score-denom">/ 30</div>
+    </div>
+    <div class="final-score-card">
+      <div class="label">Local Trust</div>
+      <div class="val trust" id="fs-trust">0</div>
+      <div class="score-denom">/ 20</div>
+    </div>
+    <div class="final-score-card">
+      <div class="label">Operational Discipline</div>
+      <div class="val discipline" id="fs-discipline">0</div>
+      <div class="score-denom">/ 30</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Response Verdict</h3>
+    <p id="db-narrative"></p>
+  </div>
+  <div class="card">
+    <h3>Hidden System Reveal</h3>
+    <p class="muted" style="font-size:0.79rem;margin-bottom:16px">These were hidden during play. They determine whether the team was adapting or silently drifting.</p>
+    <div class="insight-list" id="db-hidden"></div>
+  </div>
+  <div class="card">
+    <h3>Human Factors Triggered</h3>
+    <p class="muted" style="font-size:0.79rem;margin-bottom:16px">The red cards are the factors your decisions activated. Repetition matters more than any single moment.</p>
+    <div class="factor-grid" id="factor-grid"></div>
+  </div>
+  <div class="card">
+    <h3>Key Decision Points</h3>
+    <div class="decision-log" id="db-log"></div>
+  </div>
+  <div class="card">
+    <h3>Short Debrief</h3>
+    <div class="insight-list" id="db-insights"></div>
+  </div>
+  <div class="btn-row" style="justify-content:center;margin-top:8px;flex-wrap:wrap;gap:10px">
+    <button class="btn btn-secondary" onclick="window.location.href='index.html'">&#8592; Home</button>
+    <button class="btn btn-primary" onclick="resetGame()">Play Again</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const HUMAN_FACTORS=[
+  {id:'pressure',name:'Pressure',desc:'Urgency or outside demand compressed judgement.'},
+  {id:'fatigue',name:'Fatigue',desc:'Capacity dropped but the system kept asking for more.'},
+  {id:'communication',name:'Communication Breakdown',desc:'Critical information did not move cleanly through the team.'},
+  {id:'awareness',name:'Awareness Loss',desc:'Signals in the environment or team were missed.'},
+  {id:'assertiveness',name:'Low Assertiveness',desc:'People saw risk but did not challenge it clearly.'},
+  {id:'norms',name:'Drifted Norms',desc:'A weaker standard became accepted as normal.'},
+  {id:'leadership',name:'Leadership Strain',desc:'Direction became unclear, delayed, or overly narrow.'},
+  {id:'coordination',name:'Coordination Gaps',desc:'The team acted in fragments rather than as one system.'},
+  {id:'cultural',name:'Cultural Misread',desc:'Local context was treated as secondary to task speed.'},
+  {id:'resource',name:'Resource Tradeoff',desc:'Limited supply forced ethical or operational compromise.'}
+];
+
+const SCENARIOS=[
+  {id:'sc01',minute:5,phase:'Activation & Deployment',type:'decision',title:'Activation Brief - what leaves with the team',
+  body:`Severe damage has hit Karsin. The airport remains open for a narrow window. You can leave within the hour, but only with a reduced load plan.
+
+A logistics officer says the local hospitals are already short on trauma packs, IV fluids, and fuel filters. Social media is pushing for speed. Your own briefing pack is incomplete.
+
+What does the team do?`,
+  options:[
+    {id:'a',text:'Delay departure by 90 minutes. Rebuild the manifest around medical essentials, translator support, and local coordination equipment.',tone:'good',visible:{fatigue:2,cohesion:2,trust:1,discipline:3},hidden:{sa:4,risk:-6},factors:[],drift:-3,log:'Delayed launch to depart with the right package',outcome:'The departure is slower, but the team arrives configured for reality rather than optics.'},
+    {id:'b',text:'Depart fast with standard loadout. Plan to source the rest in theatre once you land.',tone:'ok',visible:{fatigue:0,cohesion:0,trust:-1,discipline:-1},hidden:{sa:-2,risk:5},factors:['pressure','resource'],drift:4,log:'Departed quickly with a standard loadout',outcome:'You gain time, but you have started the response with assumptions rather than confirmed needs.',delayed:[{after:2,text:'The missing trauma packs now matter. A local clinic expects supplies you do not have.',visible:{trust:-4,discipline:-2},hidden:{sa:-3,risk:6},factors:['resource']}]},
+    {id:'c',text:'Split the team. Send an advance element now and hold the rest to fix the manifest.',tone:'ok',visible:{fatigue:3,cohesion:-3,trust:0,discipline:-2},hidden:{sa:-2,risk:7},factors:['coordination','leadership'],drift:6,log:'Split the team during activation',outcome:'You preserve speed, but unity and control degrade before arrival.'}
+  ]},
+  {id:'sc02',minute:10,phase:'Activation & Deployment',type:'decision',title:'Team Member Illness - before wheels up',
+  body:`One responder develops vomiting and dehydration in the departure lounge. They insist it is stress and say they can still work. The team is already late and capacity is tight.
+
+Removing them now preserves the rest of the team. Keeping them preserves headcount.
+
+What does the team do?`,
+  options:[
+    {id:'a',text:'Remove them from deployment, replace if possible, and brief the team openly on why.',tone:'good',visible:{fatigue:1,cohesion:2,trust:0,discipline:2},hidden:{sa:2,risk:-5},factors:[],drift:-2,log:'Ill responder removed before deployment',outcome:'You lose one person, but the standard is clear and the team knows health reporting is safe.'},
+    {id:'b',text:'Keep them in a limited support role and monitor them closely.',tone:'ok',visible:{fatigue:2,cohesion:0,trust:0,discipline:-1},hidden:{sa:-1,risk:4},factors:['fatigue','pressure'],drift:3,log:'Ill responder retained in a limited role',outcome:'A compromise keeps numbers up, but monitoring now becomes another task under pressure.',delayed:[{after:3,text:'The illness spreads into the vehicle crew. Attention and patience drop during transit.',visible:{fatigue:6,cohesion:-3},hidden:{sa:-4,risk:8},factors:['fatigue','communication']}]},
+    {id:'c',text:'Say nothing and keep them in full duty. The team needs everyone.',tone:'bad',visible:{fatigue:4,cohesion:-3,trust:0,discipline:-3},hidden:{sa:-3,risk:10},factors:['fatigue','norms','leadership'],drift:8,log:'Ill responder kept in full duty without disclosure',outcome:'The team reads the message clearly: capacity matters more than candour.',delayed:[{after:2,text:'The responder deteriorates on arrival, forcing an unplanned reshuffle in public.',visible:{fatigue:5,cohesion:-4,trust:-3},hidden:{sa:-3,risk:10},factors:['fatigue','leadership']}]}
+  ]},
+  {id:'sc03',minute:15,phase:'Activation & Deployment',type:'crisis',timed:true,title:'Convoy Off Route - on the eastern approach',
+  body:`The road convoy from the airport is moving through debris-choked streets. Your lead vehicle has turned east instead of south. GPS is unreliable between tower blocks. A local driver in the rear vehicle says the route is wrong, but the convoy commander is pushing on.
+
+Seconds matter, but so does stopping at the right moment.`,
+  options:[
+    {id:'a',text:'Stop the convoy. Pull both drivers and the map officer into a 60-second route reset before moving again.',tone:'good',visible:{fatigue:1,cohesion:1,trust:1,discipline:3},hidden:{sa:5,risk:-7},factors:[],drift:-3,log:'Convoy halted and rerouted cleanly',outcome:'You lose a minute and regain the system. The team reaches sector south with one plan rather than three.'},
+    {id:'b',text:'Keep moving while the rear vehicle guides the lead driver over radio.',tone:'ok',visible:{fatigue:2,cohesion:0,trust:0,discipline:-1},hidden:{sa:-1,risk:5},factors:['communication','pressure'],drift:4,log:'Convoy corrected on the move',outcome:'You recover, but with divided attention and patchy confirmation.'},
+    {id:'c',text:'Trust the lead vehicle. They are closer to the road picture than the rear driver.',tone:'bad',visible:{fatigue:3,cohesion:-2,trust:-1,discipline:-4},hidden:{sa:-5,risk:12},factors:['assertiveness','awareness','leadership'],drift:9,log:'Convoy remained on the wrong route',outcome:'The team reaches a blocked industrial zone and loses the initiative window on arrival.',delayed:[{after:1,text:'The delayed arrival leaves local coordinators waiting without explanation.',visible:{trust:-6},hidden:{sa:-2,risk:5},factors:['communication']}]}
+  ]},
+  {id:'sc04',minute:20,phase:'Arrival & Integration',type:'decision',title:'Crowd Pressure - outside District Clinic 4',
+  body:`Your team arrives at a damaged clinic. A crowd forms immediately. People are shouting for treatment, transport, and news about missing relatives. Cameras are out. The local nurse in charge asks you to move inside first and establish triage with her team.
+
+The crowd wants action now. The clinic needs structure first.`,
+  options:[
+    {id:'a',text:'Back the local nurse publicly. Set a visible triage line with local staff and explain the process to the crowd.',tone:'good',visible:{fatigue:1,cohesion:1,trust:4,discipline:2},hidden:{sa:3,risk:-5},factors:[],drift:-2,log:'Crowd pressure absorbed through local triage structure',outcome:'People stay distressed, but legitimacy rises because the response is organised with local authority.'},
+    {id:'b',text:'Start treating the loudest casualties outside while someone else tries to organise the queue.',tone:'ok',visible:{fatigue:2,cohesion:0,trust:1,discipline:-3},hidden:{sa:-2,risk:6},factors:['pressure','coordination'],drift:5,log:'Immediate treatment started under crowd pressure',outcome:'You gain visible momentum, but the clinic loses control of the flow.'},
+    {id:'c',text:'Push the crowd back hard and secure a sterile working space before doing anything else.',tone:'bad',visible:{fatigue:1,cohesion:-1,trust:-7,discipline:1},hidden:{sa:-1,risk:9},factors:['leadership','cultural'],drift:7,log:'Crowd forced back to secure space',outcome:'The area clears, but trust drops sharply and local cooperation becomes transactional.'}
+  ]},
+  {id:'sc05',minute:25,phase:'Arrival & Integration',type:'decision',title:'Translator Theft - the phone is gone',
+  body:`Your local translator steps away during a supply unload. Their phone and ID wallet are stolen. They can still interpret, but they are shaken and now unable to verify incoming contacts.
+
+Without them, language and local nuance degrade immediately. With them, security risk remains unresolved.`,
+  options:[
+    {id:'a',text:'Pause non-essential movement. Protect the translator, assign a buddy, and route all new contacts through the municipal desk.',tone:'good',visible:{fatigue:1,cohesion:1,trust:2,discipline:2},hidden:{sa:3,risk:-4},factors:[],drift:-1,log:'Translator protected and contacts recentred through local desk',outcome:'You lose pace, but the information pipeline becomes cleaner and safer.'},
+    {id:'b',text:'Keep the translator working and tell the team to double-check names, locations, and requests verbally.',tone:'ok',visible:{fatigue:2,cohesion:0,trust:0,discipline:-1},hidden:{sa:-2,risk:5},factors:['communication','pressure'],drift:4,log:'Translator retained under degraded security',outcome:'The workaround holds for now, but every incoming task now carries extra ambiguity.',delayed:[{after:2,text:'A location request turns out to be duplicated and already closed. Two vehicles lose 40 minutes.',visible:{fatigue:4,discipline:-3},hidden:{sa:-4,risk:7},factors:['communication','awareness']}]},
+    {id:'c',text:'Pull the translator from the field entirely and continue with a bilingual team member who speaks basic local dialect.',tone:'bad',visible:{fatigue:2,cohesion:-1,trust:-5,discipline:-2},hidden:{sa:-5,risk:8},factors:['cultural','awareness'],drift:7,log:'Translator removed and replaced with weak language coverage',outcome:'The team keeps moving but stops understanding the context well enough.'}
+  ]},
+  {id:'sc06',minute:30,phase:'Arrival & Integration',type:'decision',title:'Cultural Offence - boots through the prayer room',
+  body:`During a rapid walkthrough of a community shelter, one responder cuts through a prayer space with boots on and moves family blankets to clear a route. The shelter leader freezes. Nobody shouts. The room just goes cold.
+
+The responder says they were creating a safer casualty path.`,
+  options:[
+    {id:'a',text:'Stop, apologise directly through the shelter leader, restore the space, and ask how to continue respectfully without losing care access.',tone:'good',visible:{fatigue:1,cohesion:1,trust:5,discipline:1},hidden:{sa:2,risk:-4},factors:[],drift:-1,log:'Cultural offence acknowledged and repaired quickly',outcome:'The repair is awkward, but trust recovers because the team responds with humility rather than defensiveness.'},
+    {id:'b',text:'Explain the safety rationale and keep moving. The offence was unintentional.',tone:'ok',visible:{fatigue:0,cohesion:0,trust:-3,discipline:0},hidden:{sa:-1,risk:4},factors:['cultural','leadership'],drift:3,log:'Safety rationale used to explain the cultural offence',outcome:'The team remains efficient, but the shelter now cooperates carefully rather than openly.'},
+    {id:'c',text:'Ignore it. There is no time for symbolic concerns during a mass casualty response.',tone:'bad',visible:{fatigue:0,cohesion:-1,trust:-8,discipline:-2},hidden:{sa:-3,risk:9},factors:['cultural','norms','leadership'],drift:7,log:'Cultural offence dismissed as secondary',outcome:'You preserve momentum and lose legitimacy.'}
+  ]},
+  {id:'sc07',minute:36,phase:'Operations',type:'decision',title:'Medical Resource Dilemma - one oxygen cylinder left',
+  body:`At a collapsed market site, two patients need the final oxygen cylinder. One is a child with crush injury en route to surgery. The other is an older paramedic who has been stabilising others and is now decompensating.
+
+The local doctor asks for a team decision because whichever way this goes, the room will remember it.`,
+  options:[
+    {id:'a',text:'Make the allocation decision with the local doctor using triage criteria, and say the reasoning aloud to the team.',tone:'good',visible:{fatigue:2,cohesion:1,trust:2,discipline:2},hidden:{sa:3,risk:-2},factors:['resource'],drift:0,log:'Resource allocation made transparently with local triage lead',outcome:'The decision is painful, but it is owned and anchored in a visible process.'},
+    {id:'b',text:'Give the oxygen to the person most likely to survive transport and avoid discussing the logic in front of others.',tone:'ok',visible:{fatigue:2,cohesion:-1,trust:-1,discipline:0},hidden:{sa:-1,risk:4},factors:['resource','communication'],drift:3,log:'Resource allocated quietly to preserve pace',outcome:'The room complies, but uncertainty about why the decision was made lingers.'},
+    {id:'c',text:'Give it to the local paramedic. Protect the responder who can still save others.',tone:'bad',visible:{fatigue:2,cohesion:-2,trust:-4,discipline:-1},hidden:{sa:-2,risk:7},factors:['resource','leadership','pressure'],drift:5,log:'Resource decision weighted toward system utility over visible triage',outcome:'Operationally defensible to some, morally corrosive to others.'}
+  ]},
+  {id:'sc08',minute:41,phase:'Operations',type:'decision',title:'SAR Dog Injury - capability versus welfare',
+  body:`A search dog cuts its foreleg on rebar while working a void space. The handler says the dog can probably do one more pass before rest. The canine team is your best live-find capability in this district.
+
+Everybody knows that if the dog comes off task, progress slows immediately.`,
+  options:[
+    {id:'a',text:'Pull the dog, treat the injury properly, and switch to slower search methods with clearer safety spacing.',tone:'good',visible:{fatigue:3,cohesion:1,trust:1,discipline:3},hidden:{sa:2,risk:-4},factors:[],drift:-1,log:'SAR dog withdrawn and search tempo reduced safely',outcome:'Search speed drops, but the team signals that capability is managed, not spent recklessly.'},
+    {id:'b',text:'Allow one final targeted pass, then stand the dog down.',tone:'ok',visible:{fatigue:2,cohesion:0,trust:0,discipline:-1},hidden:{sa:-1,risk:4},factors:['pressure','resource'],drift:3,log:'SAR dog kept on for one final pass',outcome:'The compromise feels practical, but it keeps the team leaning toward short-term gain.'},
+    {id:'c',text:'Keep the dog working until the sector is complete. The casualty window is closing.',tone:'bad',visible:{fatigue:2,cohesion:-2,trust:-2,discipline:-4},hidden:{sa:-3,risk:9},factors:['pressure','norms','leadership'],drift:7,log:'SAR dog pushed beyond safe limit',outcome:'The team finishes the sector, but the message is that fatigue and injury are negotiable if the pressure is high enough.',delayed:[{after:2,text:'The dog is stood down for the rest of the operation. Search confidence drops across the team.',visible:{cohesion:-3,discipline:-2},hidden:{sa:-3,risk:5},factors:['fatigue','leadership']}]}
+  ]},
+  {id:'sc09',minute:46,phase:'Operations',type:'decision',title:'Body Recovery Conflict - families are watching',
+  body:`A body is visible in the upper floor of a collapsed apartment block. Families are pleading for immediate recovery. The local incident commander says the structure is not yet safe for that entry and asks you to hold the line.
+
+Your team can probably get the body out. You cannot guarantee the team will get out cleanly.`,
+  options:[
+    {id:'a',text:'Support the incident commander. Explain to families that recovery will happen after shoring and route confirmation.',tone:'good',visible:{fatigue:1,cohesion:1,trust:2,discipline:3},hidden:{sa:3,risk:-6},factors:[],drift:-2,log:'Body recovery delayed until structure was made safer',outcome:'The families are distressed, but the team stays aligned with the system rather than performing for the moment.'},
+    {id:'b',text:'Send a small pair in with spotters outside. Keep the entry short and tightly bounded.',tone:'ok',visible:{fatigue:2,cohesion:0,trust:1,discipline:-2},hidden:{sa:-2,risk:6},factors:['pressure','leadership'],drift:4,log:'Limited early body recovery attempted under pressure',outcome:'You partially satisfy the immediate demand while increasing the number of people exposed to the structure.'},
+    {id:'c',text:'Recover immediately. The family pressure and humanitarian obligation outweigh the procedural delay.',tone:'bad',visible:{fatigue:3,cohesion:-2,trust:0,discipline:-5},hidden:{sa:-4,risk:12},factors:['pressure','norms','leadership','awareness'],drift:8,log:'Immediate body recovery overrode structural caution',outcome:'The recovery succeeds, but a near miss in the stairwell goes unreported because everyone wants the act to feel worth it.',delayed:[{after:1,text:'A responder later admits they nearly lost footing on the unstable stairwell. Nobody had voiced it in the moment.',visible:{cohesion:-2},hidden:{sa:-4,risk:8},factors:['assertiveness','awareness']}]}
+  ]},
+  {id:'sc10',minute:50,phase:'Operations',type:'crisis',timed:true,title:'Team Fatigue Conflict - the argument at the water point',
+  body:`At the water point, two responders break into a public argument. One says the other missed a patient handover. The other says they have been running on two hours of sleep and covering three roles.
+
+Locals are watching. The rest of the team needs direction now, not a post-match analysis.`,
+  options:[
+    {id:'a',text:'Pause the operation for three minutes. Split the two responders, reassign one role, and name fatigue openly as an operational issue.',tone:'good',visible:{fatigue:2,cohesion:3,trust:1,discipline:2},hidden:{sa:2,risk:-5},factors:['fatigue'],drift:-1,log:'Fatigue conflict contained and role pressure reset',outcome:'The pause costs tempo but restores a working team.'},
+    {id:'b',text:'Order both responders back to work immediately and deal with it after shift end.',tone:'ok',visible:{fatigue:1,cohesion:-2,trust:0,discipline:0},hidden:{sa:-2,risk:5},factors:['fatigue','leadership'],drift:4,log:'Conflict suppressed until later',outcome:'You regain short-term function, but the underlying overload remains active.'},
+    {id:'c',text:'Replace the responder who missed the handover and publicly back the one who raised the issue.',tone:'bad',visible:{fatigue:1,cohesion:-4,trust:-1,discipline:-1},hidden:{sa:-3,risk:8},factors:['leadership','communication','fatigue'],drift:6,log:'Conflict resolved through public siding with one responder',outcome:'The signal to the team is clear: being exhausted is a personal failure, not a system condition.'}
+  ]},
+  {id:'sc11',minute:55,phase:'Consequence & Extraction',type:'crisis',timed:true,title:'Cannot Return to Base - bridge closure at dusk',
+  body:`A bridge collapse and fuel contamination report mean your convoy cannot return to base tonight. The team is spread across two sectors with limited chargers, one satellite unit, and incomplete food accounting.
+
+Everyone wants a fast answer. You need a survivable one.`,
+  options:[
+    {id:'a',text:'Consolidate the team into one safe overnight site, reduce activity to essentials, and send one clear movement update to local command.',tone:'good',visible:{fatigue:4,cohesion:2,trust:2,discipline:3},hidden:{sa:4,risk:-6},factors:[],drift:-2,log:'Team consolidated when return to base was cut off',outcome:'It is uncomfortable, but the team becomes one system again instead of several exposed fragments.'},
+    {id:'b',text:'Hold both sectors overnight to maintain coverage and reconnect at first light.',tone:'ok',visible:{fatigue:5,cohesion:-1,trust:0,discipline:-2},hidden:{sa:-2,risk:6},factors:['coordination','fatigue'],drift:5,log:'Two overnight holds maintained sector coverage',outcome:'You protect coverage and increase the chance of fragmented decision-making after dark.'},
+    {id:'c',text:'Attempt the return anyway using local back streets before the closure hardens.',tone:'bad',visible:{fatigue:4,cohesion:-2,trust:-2,discipline:-5},hidden:{sa:-5,risk:12},factors:['pressure','awareness','leadership'],drift:9,log:'Attempted to force return after route loss',outcome:'The team stays in motion and loses its picture of the environment.'}
+  ]},
+  {id:'sc12',minute:60,phase:'Consequence & Extraction',type:'decision',title:'Extraction Debrief - what gets said before departure',
+  body:`The air bridge opens at dawn. Before wheels up, the municipal coordination lead asks for a final ten-minute debrief: what helped, what hindered, and what your team needs to own before leaving.
+
+The temptation is to keep it brief and clean. The value is in saying what actually happened.`,
+  options:[
+    {id:'a',text:'Run a tight debrief: one operational success, one human factor failure, one thing the team would change next time.',tone:'good',visible:{fatigue:0,cohesion:3,trust:2,discipline:2},hidden:{sa:4,risk:-3},factors:[],drift:-2,log:'Structured extraction debrief completed',outcome:'The debrief is short, specific, and honest enough to carry learning forward.'},
+    {id:'b',text:'Thank the local team, summarise outputs, and avoid reopening difficult decisions at the end.',tone:'ok',visible:{fatigue:0,cohesion:1,trust:1,discipline:0},hidden:{sa:-1,risk:2},factors:['communication'],drift:1,log:'Extraction debrief stayed operational and avoided friction',outcome:'It is polite and efficient. It leaves the most important learning untouched.'},
+    {id:'c',text:'Skip the debrief. The team is spent and transport windows are too fragile.',tone:'bad',visible:{fatigue:0,cohesion:-2,trust:-2,discipline:-2},hidden:{sa:-3,risk:5},factors:['communication','norms'],drift:4,log:'Extraction debrief skipped',outcome:'You save ten minutes and lose the chance to stabilise meaning.'}
+  ]}
+];
+
+const BREAKPOINT_LIBRARY={
+  public_argument:{id:'bp1',minute:'BREAK',phase:'Breakpoint Event',type:'crisis',title:'Breakpoint - public fracture',body:`The accumulation is now visible. A coordination disagreement breaks into public view in front of local staff. The issue is not the disagreement. The issue is that the team has stopped containing pressure well enough to think together.`,options:[
+    {id:'a',text:'Call a hard reset. One minute, one voice, one objective, then resume with explicit role assignments.',tone:'good',visible:{fatigue:1,cohesion:2,trust:1,discipline:2},hidden:{sa:2,risk:-6},factors:['leadership'],drift:-2,log:'Breakpoint reset used to re-establish one team',outcome:'The team regains a single rhythm before the fracture hardens.'},
+    {id:'b',text:'Push through and keep the disagreement private. Output matters more than the optics.',tone:'bad',visible:{fatigue:1,cohesion:-3,trust:-2,discipline:-2},hidden:{sa:-2,risk:7},factors:['leadership','communication'],drift:5,log:'Breakpoint was suppressed rather than reset',outcome:'The visible rupture closes, but the internal conditions stay active.'}]},
+  missed_survivor:{id:'bp2',minute:'BREAK',phase:'Critical Incident',type:'crisis',title:'Critical Incident - missed live-find signal',body:`A later sweep finds that a weak tapping pattern was heard earlier and dismissed as background noise. No one person caused it. The team had lost enough shared awareness that a fragile signal could not hold its shape.`,options:[
+    {id:'a',text:'Stop and run a disciplined re-brief on search calls, handovers, and who has authority to halt a sector.',tone:'good',visible:{fatigue:1,cohesion:1,trust:0,discipline:3},hidden:{sa:3,risk:-4},factors:['awareness'],drift:-1,log:'Critical incident used to restore search discipline',outcome:'The team cannot undo the miss, but it can stop treating it as random.'},
+    {id:'b',text:'Absorb the hit and keep searching. There is no time to dwell on one missed signal.',tone:'bad',visible:{fatigue:1,cohesion:-2,trust:-1,discipline:-3},hidden:{sa:-3,risk:8},factors:['awareness','norms'],drift:6,log:'Critical incident absorbed without system correction',outcome:'The search continues, but the team has learned the wrong lesson.'}]},
+  security_escalation:{id:'bp3',minute:'BREAK',phase:'Critical Incident',type:'crisis',title:'Critical Incident - security escalation',body:`Repeated drift has changed how the environment sees your team. A routine stop turns hostile after mixed messages, delayed promises, and visible friction. Local trust has converted into suspicion.`,options:[
+    {id:'a',text:'Stand down, reduce profile, put the municipal liaison forward, and communicate one message only.',tone:'good',visible:{fatigue:2,cohesion:1,trust:1,discipline:2},hidden:{sa:2,risk:-5},factors:['communication','cultural'],drift:-1,log:'Security escalation de-escalated through local liaison',outcome:'The team gives legitimacy back to the relationship rather than trying to win the interaction.'},
+    {id:'b',text:'Take control visibly and move the team through with forceful authority.',tone:'bad',visible:{fatigue:1,cohesion:-2,trust:-5,discipline:-1},hidden:{sa:-2,risk:9},factors:['leadership','cultural','pressure'],drift:7,log:'Security escalation handled through visible force',outcome:'The team gets through the moment and damages the space around the rest of the operation.'}]}
+};
+
+function visualUrl(prompt){
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1600&height=900&nologo=true&model=flux`;
+}
+
+const STORY_VISUALS={
+  sc01:{src:visualUrl('fictional earthquake response in Karsin megacity, international disaster team building supply manifest in a dim airport operations room, cracked windows, maps, orange emergency light, cinematic documentary realism, consistent characters, no text'),caption:'The team is still outside the disaster zone, but the quality of this room will shape the rest of the night.'},
+  sc02:{src:visualUrl('same fictional Karsin earthquake response story, responder ill and dehydrated in departure lounge, medical bags and airport glass behind, teammates deciding whether to deploy, cinematic documentary realism, consistent characters, no text'),caption:'Capacity pressure starts before the team even leaves. The first standard is usually a health standard.'},
+  sc04:{src:visualUrl('same fictional Karsin earthquake story, damaged district clinic surrounded by desperate crowd, local nurse and international responders setting triage line, dust, blue tarps, cinematic documentary realism, consistent characters, no text'),caption:'Arrival is loud. The first question is whether the team joins the local system or competes with it.'},
+  sc05:{src:visualUrl('same fictional Karsin earthquake response, shaken translator beside stolen bag during aid unload, responders checking manifests and municipal contacts, damaged street, cinematic documentary realism, consistent characters, no text'),caption:'A single theft can distort the whole information picture when trust and translation are carrying the operation.'},
+  sc06:{src:visualUrl('same fictional Karsin earthquake response, community shelter prayer space after accidental cultural offence, blankets, shelter leader, responder pausing to repair harm, cinematic documentary realism, consistent characters, no text'),caption:'Momentum is not the same as legitimacy. How the team repairs small harm affects what people say later.'},
+  sc07:{src:visualUrl('same fictional Karsin earthquake response, dim collapsed market casualty station with one oxygen cylinder and two critical patients, local doctor and international team facing ethical decision, cinematic documentary realism, consistent characters, no text'),caption:'Some resource dilemmas are remembered less for the decision than for how clearly the reasoning was shared.'},
+  sc08:{src:visualUrl('same fictional Karsin earthquake response, injured search and rescue dog with handler beside unstable rebar void, rescue team slowing search tempo, cinematic documentary realism, consistent characters, no text'),caption:'The team is now deciding whether capability is something to manage or something to spend.'},
+  sc09:{src:visualUrl('same fictional Karsin earthquake response, families watching a visible body in unstable apartment block, local incident commander holding line with international team, dusk dust light, cinematic documentary realism, consistent characters, no text'),caption:'Humanitarian pressure and structural caution now sit in the same frame. The decision will echo beyond this building.'},
+  sc12:{src:visualUrl('same fictional Karsin earthquake response story at dawn, municipal coordination lead and exhausted international team in short extraction debrief near air bridge, helicopters and damaged skyline behind, cinematic documentary realism, consistent characters, no text'),caption:'The final scene is quieter. What the team says here decides whether the response ends as noise or as learning.'},
+  bp1:{src:visualUrl('same fictional Karsin earthquake response, public disagreement between responders in front of local staff at aid point, visible stress, fractured team posture, cinematic documentary realism, consistent characters, no text'),caption:'The fracture is no longer hidden inside the team. Other people can now see the drift.'},
+  bp2:{src:visualUrl('same fictional Karsin earthquake response, search team realising a live-find signal was missed in dark rubble corridor, headlamps, dust, stunned faces, cinematic documentary realism, consistent characters, no text'),caption:'The system has narrowed enough that a weak signal no longer holds. This is what hidden drift looks like when it becomes visible.'},
+  bp3:{src:visualUrl('same fictional Karsin earthquake response, tense street stop becoming hostile after mixed messages, municipal liaison stepping forward, responders lowering profile, cinematic documentary realism, consistent characters, no text'),caption:'When local trust falls far enough, the environment starts responding to the team as a problem of its own.'}
+};
+
+function scaleVisibleDelta(delta){
+  const d={fatigue:0,cohesion:0,trust:0,discipline:0,...(delta||{})};
+  const scaled={
+    fatigue:d.fatigue>0?-Math.max(1,Math.min(4,Math.round(d.fatigue/2)||1)):d.fatigue===0?-1:Math.min(-1,d.fatigue),
+    cohesion:d.cohesion>0?Math.min(3,Math.max(1,Math.round(d.cohesion/2))):d.cohesion<0?-Math.min(4,Math.max(1,Math.round(Math.abs(d.cohesion)/1.5))):0,
+    trust:d.trust>0?Math.min(3,Math.max(1,Math.round(d.trust/2))):d.trust<0?-Math.min(4,Math.max(1,Math.round(Math.abs(d.trust)/2))):0,
+    discipline:d.discipline>0?Math.min(3,Math.max(1,Math.round(d.discipline/2))):d.discipline<0?-Math.min(4,Math.max(1,Math.round(Math.abs(d.discipline)/1.5))):0
+  };
+  return scaled;
+}
+
+function normaliseScoring(){
+  const optionSets=[
+    ...SCENARIOS.flatMap(sc=>sc.options),
+    ...Object.values(BREAKPOINT_LIBRARY).flatMap(sc=>sc.options)
+  ];
+  optionSets.forEach(opt=>{
+    opt.visible=scaleVisibleDelta(opt.visible);
+    if(opt.delayed){
+      opt.delayed=opt.delayed.map(item=>({...item,visible:scaleVisibleDelta(item.visible)}));
+    }
+  });
+}
+
+normaliseScoring();
+
+const RESOURCE_MAX={fatigue:20,cohesion:30,trust:20,discipline:30};
+const STARTING_RESOURCES={fatigue:20,cohesion:30,trust:20,discipline:30};
+const STARTING_HIDDEN={sa:68,risk:14};
+let S={};
+
+function freshState(){
+  return{teamName:'Karsin Task Group',playerCount:6,players:[],currentIndex:0,injected:null,pendingBreakpoints:[],pendingConsequences:[],currentNotices:[],selected:null,res:{...STARTING_RESOURCES},hidden:{...STARTING_HIDDEN},activeFactors:[],flags:[],log:[],timer:null,timerSec:45,timerExp:false,callerIdx:0};
+}
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function renderPlayerFields(){
+  const n=Math.min(8,Math.max(1,parseInt(document.getElementById('player-count-input').value)||1));
+  const c=document.getElementById('player-name-fields');
+  c.innerHTML='';
+  for(let i=0;i<n;i++){
+    const d=document.createElement('div');
+    d.style.marginTop='10px';
+    d.innerHTML=`<label>Player ${i+1} name</label><input type="text" id="pn-${i}" placeholder="Enter name" maxlength="24">`;
+    c.appendChild(d);
+  }
+}
+renderPlayerFields();
+S=freshState();
+
+function showIntro(){
+  const n=Math.min(8,Math.max(1,parseInt(document.getElementById('player-count-input').value)||1));
+  S.teamName=document.getElementById('team-name-input').value.trim()||'Karsin Task Group';
+  S.playerCount=n;
+  S.players=[];
+  for(let i=0;i<n;i++){
+    const name=(document.getElementById(`pn-${i}`)?.value.trim())||`Player ${i+1}`;
+    S.players.push({name});
+  }
+  document.getElementById('team-summary').innerHTML=`<div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.05em;text-transform:uppercase">Response Team</div>${S.players.map(p=>`<span class="team-badge"><span class="dot"></span>${p.name}</span>`).join('')}`;
+  goTo('screen-intro');
+}
+
+function startGame(){
+  S={...freshState(),teamName:S.teamName,playerCount:S.playerCount,players:[...S.players]};
+  document.getElementById('hdr-name').textContent=S.teamName;
+  goTo('screen-game');
+  renderSc();
+}
+
+function getCurrentScenario(){return S.injected||SCENARIOS[S.currentIndex]}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+function killTimer(){if(S.timer){clearInterval(S.timer);S.timer=null}}
+function applyVisible(delta){
+  const applied={fatigue:0,cohesion:0,trust:0,discipline:0,...(delta||{})};
+  if(applied.fatigue===0)applied.fatigue=-1;
+
+  if(applied.cohesion<0){
+    applied.discipline+=applied.cohesion;
+    if(applied.cohesion<=-2)applied.trust-=1;
+  }else if(applied.cohesion>0){
+    applied.discipline+=Math.max(1,Math.floor(applied.cohesion/2));
+    if(applied.cohesion>=2)applied.trust+=1;
+  }
+
+  if(applied.fatigue<=-2)applied.discipline-=1;
+  if(S.res.fatigue+applied.fatigue<=6)applied.cohesion-=1;
+
+  S.res.fatigue=clamp(S.res.fatigue+applied.fatigue,0,RESOURCE_MAX.fatigue);
+  S.res.cohesion=clamp(S.res.cohesion+applied.cohesion,0,RESOURCE_MAX.cohesion);
+  S.res.trust=clamp(S.res.trust+applied.trust,0,RESOURCE_MAX.trust);
+  S.res.discipline=clamp(S.res.discipline+applied.discipline,0,RESOURCE_MAX.discipline);
+  return applied;
+}
+function applyHidden(delta){S.hidden.sa=clamp(S.hidden.sa+(delta.sa||0),0,100);S.hidden.risk=clamp(S.hidden.risk+(delta.risk||0),0,100)}
+
+function renderNotices(){
+  const noticeWrap=document.getElementById('system-notice');
+  if(!S.currentNotices.length){noticeWrap.style.display='none';noticeWrap.innerHTML='';return;}
+  noticeWrap.style.display='grid';
+  noticeWrap.innerHTML=S.currentNotices.map(n=>`<div class="notice-item ${n.kind}">${n.text}</div>`).join('');
+  S.currentNotices=[];
+}
+
+function renderSc(){
+  const sc=getCurrentScenario();
+  if(!sc){showDebrief();return;}
+  S.selected=null;
+  killTimer();
+  document.getElementById('hdr-minute').textContent=sc.minute;
+  document.getElementById('hdr-sc').textContent=Math.min(S.currentIndex+1,SCENARIOS.length);
+  document.getElementById('sc-minute-tag').textContent=`Minute ${sc.minute}`;
+  const typeTag=document.getElementById('sc-type-tag');
+  typeTag.textContent=sc.type==='crisis'?'Crisis':'Decision';
+  typeTag.className=sc.type==='crisis'?'tag tag-crisis':'tag tag-normal';
+  document.getElementById('sc-phase-tag').textContent=sc.phase;
+  document.getElementById('sc-title').textContent=sc.title;
+  document.getElementById('sc-body').textContent=sc.body;
+  const mediaWrap=document.getElementById('scenario-media');
+  const mediaImg=document.getElementById('scenario-media-img');
+  const mediaCaption=document.getElementById('scenario-media-caption-text');
+  const visual=(!sc.timed&&STORY_VISUALS[sc.id])?STORY_VISUALS[sc.id]:null;
+  if(visual){
+    mediaWrap.style.display='block';
+    mediaImg.src=visual.src;
+    mediaImg.alt=sc.title;
+    mediaCaption.textContent=visual.caption;
+  }else{
+    mediaWrap.style.display='none';
+    mediaImg.removeAttribute('src');
+    mediaCaption.textContent='';
+  }
+  if(S.players.length){
+    const caller=S.players[S.callerIdx%S.players.length];
+    document.getElementById('caller-name-display').textContent=caller.name;
+    document.getElementById('caller-banner').style.display='flex';
+    S.callerIdx++;
+  }else document.getElementById('caller-banner').style.display='none';
+  renderNotices();
+  const oc=document.getElementById('sc-options');
+  oc.innerHTML='';
+  sc.options.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='option-btn';
+    b.dataset.id=o.id;
+    b.innerHTML=`<span class="option-letter">${String.fromCharCode(65+i)}</span>${o.text}`;
+    b.onclick=()=>pickOpt(o.id);
+    oc.appendChild(b);
+  });
+  document.getElementById('outcome-area').style.display='none';
+  document.getElementById('cascade-note').style.display='none';
+  document.getElementById('confirm-btn').disabled=true;
+  document.getElementById('confirm-btn').style.display='inline-block';
+  document.getElementById('confirm-btn').textContent='Confirm Decision';
+  document.getElementById('confirm-btn').className='btn btn-primary';
+  document.getElementById('next-btn').style.display='none';
+  updateBars();
+  if(sc.timed)startTimer();else document.getElementById('timer-wrap').style.display='none';
+}
+
+function pickOpt(id){
+  S.selected=id;
+  document.querySelectorAll('.option-btn').forEach(b=>b.classList.toggle('selected',b.dataset.id===id));
+  document.getElementById('confirm-btn').disabled=false;
+}
+
+function startTimer(){
+  S.timerSec=45;
+  S.timerExp=false;
+  document.getElementById('timer-wrap').style.display='flex';
+  tickTimer();
+  S.timer=setInterval(()=>{
+    S.timerSec--;
+    tickTimer();
+    if(S.timerSec<=0){
+      killTimer();
+      S.timerExp=true;
+      const cb=document.getElementById('confirm-btn');
+      cb.textContent='Time\'s up - apply decision';
+      cb.disabled=false;
+      cb.className='btn btn-danger';
+    }
+  },1000);
+}
+
+function tickTimer(){
+  document.getElementById('timer-num').textContent=S.timerSec;
+  document.getElementById('timer-ring').setAttribute('stroke-dashoffset',138.23*(1-S.timerSec/45));
+  const col=S.timerSec>15?'var(--trust)':S.timerSec>6?'var(--warning)':'var(--danger)';
+  document.getElementById('timer-ring').setAttribute('stroke',col);
+  document.getElementById('timer-num').style.color=col;
+}
+
+function scheduleDelayed(delayed){
+  if(!delayed)return;
+  delayed.forEach(item=>S.pendingConsequences.push({...item,triggerAt:S.currentIndex+(item.after||1)}));
+}
+
+function evaluateBreakpoints(){
+  if(S.hidden.risk>=34&&!S.flags.includes('bp_public_argument')){
+    S.flags.push('bp_public_argument');
+    S.pendingBreakpoints.push(BREAKPOINT_LIBRARY.public_argument);
+    S.currentNotices.push({kind:'breakpoint',text:'Breakpoint triggered: the team is starting to fracture in public.'});
+  }
+  if(S.hidden.sa<=42&&!S.flags.includes('bp_missed_survivor')){
+    S.flags.push('bp_missed_survivor');
+    S.pendingBreakpoints.push(BREAKPOINT_LIBRARY.missed_survivor);
+    S.currentNotices.push({kind:'breakpoint',text:'Critical incident triggered: situational awareness has dropped below a safe threshold.'});
+  }
+  if(S.hidden.risk>=58&&!S.flags.includes('bp_security_escalation')){
+    S.flags.push('bp_security_escalation');
+    S.pendingBreakpoints.push(BREAKPOINT_LIBRARY.security_escalation);
+    S.currentNotices.push({kind:'breakpoint',text:'Critical incident triggered: repeated drift is now affecting external behaviour around the team.'});
+  }
+}
+
+function processDelayedConsequences(nextIndex){
+  const due=S.pendingConsequences.filter(x=>x.triggerAt===nextIndex);
+  if(!due.length)return;
+  S.pendingConsequences=S.pendingConsequences.filter(x=>x.triggerAt!==nextIndex);
+  due.forEach(item=>{
+    const applied=applyVisible(item.visible||{});
+    applyHidden(item.hidden||{});
+    if(item.factors)item.factors.forEach(f=>S.activeFactors.push(f));
+    S.currentNotices.push({kind:'delayed',text:`${item.text} Impact: ${metricChangeText(applied)}.`});
+  });
+}
+
+function metricChangeText(delta){
+  const map=[['Fatigue',delta.fatigue||0,false],['Cohesion',delta.cohesion||0,false],['Trust',delta.trust||0,false],['Discipline',delta.discipline||0,false]];
+  return map.filter(([,v])=>v!==0).map(([name,v,invert])=>{
+    const shown=invert?-v:v;
+    return `${name} ${shown>0?'+':''}${shown}`;
+  }).join(' · ');
+}
+
+function currentHealthState(){
+  const total=S.res.fatigue+S.res.cohesion+S.res.trust+S.res.discipline;
+  if(S.res.cohesion<=8||S.res.discipline<=8||S.res.fatigue<=4||total<=35||S.hidden.sa<=20||S.hidden.risk>=85)return 'collapse';
+  if(S.res.trust<=8||S.res.fatigue<=8||total<=55||S.hidden.risk>=65)return 'fragile';
+  return 'stable';
+}
+
+function confirmChoice(){
+  const sc=getCurrentScenario();
+  if(!sc)return;
+  if(!S.selected&&!S.timerExp)return;
+  killTimer();
+  document.getElementById('timer-wrap').style.display='none';
+  let opt;
+  if(S.timerExp&&!S.selected){
+    opt=sc.options[sc.options.length-1];
+    document.querySelectorAll('.option-btn').forEach(b=>{if(b.dataset.id===opt.id)b.classList.add('selected')});
+  }else opt=sc.options.find(o=>o.id===S.selected);
+  if(!opt)return;
+
+  const appliedVisible=applyVisible(opt.visible||{});
+  applyHidden(opt.hidden||{});
+  scheduleDelayed(opt.delayed);
+  if(opt.factors)opt.factors.forEach(f=>S.activeFactors.push(f));
+  if(typeof opt.drift==='number')S.hidden.risk=clamp(S.hidden.risk+opt.drift,0,100);
+  S.log.push({step:sc.minute,label:opt.log,tone:opt.tone,impact:(appliedVisible.cohesion||0)+(appliedVisible.trust||0)+(appliedVisible.discipline||0)+(appliedVisible.fatigue||0)});
+  evaluateBreakpoints();
+
+  const ob=document.getElementById('outcome-banner');
+  ob.className='outcome-banner '+opt.tone;
+  document.getElementById('outcome-text').textContent=opt.outcome;
+  document.getElementById('outcome-pts').textContent=metricChangeText(appliedVisible)||'No visible metric change';
+  document.getElementById('outcome-area').style.display='block';
+
+  const carry=[];
+  if((opt.hidden?.sa||0)<0)carry.push('situational awareness has narrowed');
+  if((opt.hidden?.risk||0)>0||opt.drift>0)carry.push('failure cascade risk has increased');
+  if(opt.factors&&opt.factors.length)carry.push('human factors entered the system');
+  if(appliedVisible.cohesion<0&&appliedVisible.discipline<0)carry.push('cohesion loss weakened discipline');
+  if(appliedVisible.fatigue<0)carry.push('fatigue capacity was spent to make this decision');
+  if(carry.length){
+    const cn=document.getElementById('cascade-note');
+    cn.textContent=carry.join(' · ');
+    cn.style.display='block';
+  }
+
+  document.querySelectorAll('.option-btn').forEach(b=>b.disabled=true);
+  document.getElementById('confirm-btn').style.display='none';
+  updateBars();
+  const nb=document.getElementById('next-btn');
+  nb.style.display='inline-block';
+  nb.textContent=S.currentIndex>=SCENARIOS.length-1&&!S.injected?'View Debrief':'Next Scenario';
+}
+
+function nextSc(){
+  if(S.injected){
+    S.injected=null;
+    S.currentIndex++;
+    processDelayedConsequences(S.currentIndex);
+    if(S.currentIndex>=SCENARIOS.length){showDebrief();return;}
+    if(S.pendingBreakpoints.length)S.injected=S.pendingBreakpoints.shift();
+    renderSc();
+    return;
+  }
+  if(S.pendingBreakpoints.length){
+    S.injected=S.pendingBreakpoints.shift();
+    renderSc();
+    return;
+  }
+  S.currentIndex++;
+  processDelayedConsequences(S.currentIndex);
+  if(S.currentIndex>=SCENARIOS.length){showDebrief();return;}
+  if(S.pendingBreakpoints.length)S.injected=S.pendingBreakpoints.shift();
+  renderSc();
+}
+
+function updateBars(){
+  const entries=[
+    {id:'fatigue',value:S.res.fatigue,max:RESOURCE_MAX.fatigue},
+    {id:'cohesion',value:S.res.cohesion,max:RESOURCE_MAX.cohesion},
+    {id:'trust',value:S.res.trust,max:RESOURCE_MAX.trust},
+    {id:'discipline',value:S.res.discipline,max:RESOURCE_MAX.discipline}
+  ];
+  entries.forEach(entry=>{
+    document.getElementById(`rv-${entry.id}`).textContent=entry.value;
+    document.getElementById(`res-card-${entry.id}`).classList.toggle('res-danger',entry.value<=Math.ceil(entry.max*0.33));
+  });
+}
+
+function showDebrief(){
+  killTimer();
+  document.getElementById('fs-fatigue').textContent=S.res.fatigue;
+  document.getElementById('fs-cohesion').textContent=S.res.cohesion;
+  document.getElementById('fs-trust').textContent=S.res.trust;
+  document.getElementById('fs-discipline').textContent=S.res.discipline;
+
+  const state=currentHealthState();
+  const total=S.res.fatigue+S.res.cohesion+S.res.trust+S.res.discipline;
+  let title='Response Complete - Holding the System';
+  let sub='The team preserved structure under pressure and kept drift visible enough to manage.';
+  if(state==='fragile'){title='Response Complete - Under Strain';sub='The team kept operating, but drift accumulated and second-order costs followed it.';}
+  if(state==='collapse'){title='Response Complete - System Fracture';sub='The visible work continued, but hidden conditions degraded faster than the team corrected them.';}
+  document.getElementById('db-title').textContent=title;
+  document.getElementById('db-sub').textContent=sub;
+
+  document.getElementById('db-narrative').textContent=[
+    `The team started with 100 visible points distributed as Cohesion 30, Fatigue 20, Local Trust 20, and Discipline 30. It finished with ${total}/100 remaining.`,
+    `End state: fatigue ${S.res.fatigue}/20, cohesion ${S.res.cohesion}/30, local trust ${S.res.trust}/20, operational discipline ${S.res.discipline}/30.`,
+    S.res.cohesion<=12?'Cohesion fell far enough that discipline could not hold its line. That is the main visible story of this run.':'Cohesion remained strong enough to protect at least part of the team standard under pressure.',
+    S.res.fatigue<=8?'Fatigue capacity was spent down aggressively. Later decisions were being made with reduced patience and reduced execution margin.':'Fatigue was spent, but not so fast that the team completely lost its working reserve.',
+    S.flags.includes('bp_public_argument')?'The first breakpoint came when pressure escaped the team boundary and became visible to others.':'The team avoided a public fracture point.',
+    S.flags.includes('bp_missed_survivor')?'Situational awareness fell low enough for a weak but meaningful signal to be lost.':'Situational awareness degraded, but not far enough to trigger a live-find miss.',
+    S.flags.includes('bp_security_escalation')?'Failure cascade risk rose high enough that the environment began reacting to the team rather than just the disaster.':'Failure cascade risk remained below the security escalation threshold.'
+  ].join(' ');
+
+  document.getElementById('db-hidden').innerHTML=[
+    `<div class="insight-item"><strong>Situational Awareness:</strong> ${S.hidden.sa}/100. ${S.hidden.sa>=65?'The team kept a usable picture of the environment and itself.':S.hidden.sa>=40?'The picture narrowed under load and required active recovery.':'The team lost enough picture quality for signals to be missed.'}</div>`,
+    `<div class="insight-item"><strong>Failure Cascade Risk:</strong> ${S.hidden.risk}/100. ${S.hidden.risk<=25?'Small errors were corrected before they linked together.':S.hidden.risk<=55?'Several weak signals began to connect into drift.':'The response entered cascade territory: small errors were reinforcing each other.'}</div>`
+  ].join('');
+
+  const factorGrid=document.getElementById('factor-grid');
+  factorGrid.innerHTML='';
+  HUMAN_FACTORS.forEach(f=>{
+    const count=S.activeFactors.filter(x=>x===f.id).length;
+    const card=document.createElement('div');
+    card.className='factor-card '+(count>0?'triggered':'clean');
+    card.innerHTML=`${count>0?`<div class="factor-count">${count}x triggered</div>`:''}<div class="factor-name">${f.name}</div><div class="factor-desc">${f.desc}</div>`;
+    factorGrid.appendChild(card);
+  });
+
+  document.getElementById('db-log').innerHTML=S.log.map(item=>`<div class="log-item"><span class="log-step">${item.step}</span><span class="log-text">${item.label}</span><span class="log-impact ${item.tone}">${item.impact>0?'+':''}${item.impact}</span></div>`).join('');
+
+  document.getElementById('db-insights').innerHTML=[
+    `<div class="insight-item"><strong>Scoring logic:</strong> Fatigue points represent remaining capacity, so most decisions spend at least 1 point. When cohesion fell, discipline usually fell with it.</div>`,
+    `<div class="insight-item"><strong>Communication:</strong> ${S.activeFactors.filter(x=>x==='communication').length>1?'Handover quality degraded repeatedly.':'Communication held best when it was made explicit rather than assumed.'}</div>`,
+    `<div class="insight-item"><strong>Awareness:</strong> ${S.hidden.sa<45?'The team reacted late because it stopped refreshing its picture.':'The team protected its picture best when it paused to re-coordinate.'}</div>`,
+    `<div class="insight-item"><strong>Leadership:</strong> ${S.activeFactors.filter(x=>x==='leadership').length>1?'Leadership strain appeared when speed replaced structure.':'Leadership remained strongest when decisions were named aloud and roles were clear.'}</div>`
+  ].join('');
+
+  goTo('screen-debrief');
+}
+
+function resetGame(){
+  killTimer();
+  S=freshState();
+  document.getElementById('player-count-input').value=6;
+  renderPlayerFields();
+  goTo('screen-landing');
+}
+
+function confirmStopGame(){
+  if(confirm('Stop this module and return to landing?'))resetGame();
+}
+
+(function initVisuals(){
+  const _goTo=goTo;
+  window.goTo=function(id){
+    _goTo(id);
+    const nav=document.getElementById('fixed-nav');
+    const fnHome=document.getElementById('fn-home');
+    const fnStop=document.getElementById('fn-stop');
+    if(id==='screen-landing'){nav.style.display='none'}
+    else if(id==='screen-game'){nav.style.display='flex';fnHome.style.display='none';fnStop.style.display='inline-block'}
+    else{nav.style.display='flex';fnHome.style.display='inline-block';fnStop.style.display='none'}
+  };
+
+  const canvas=document.getElementById('universe-canvas');
+  if(!canvas||!canvas.getContext)return;
+  const ctx=canvas.getContext('2d');
+  if(!ctx)return;
+  let pts=[],rot=0;
+  function resize(){
+    canvas.width=window.innerWidth;
+    canvas.height=window.innerHeight;
+    pts=Array.from({length:180},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,z:Math.random()*1.2+0.2,r:Math.random()*2+0.4}));
+  }
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    rot+=0.003;
+    pts.forEach((p,i)=>{
+      const dx=Math.sin(rot+i)*12;
+      const dy=Math.cos(rot*0.7+i)*8;
+      ctx.beginPath();
+      ctx.arc((p.x+dx+canvas.width)%canvas.width,(p.y+dy+canvas.height)%canvas.height,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(216,111,70,${0.08+p.z*0.16})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  resize();
+  window.addEventListener('resize',resize);
+  draw();
+})();
+</script>
+
+<script src="assets/footer.js"></script>
+<script>if(window.renderExpeditionFooter)window.renderExpeditionFooter();</script>
+</body>
+</html>
